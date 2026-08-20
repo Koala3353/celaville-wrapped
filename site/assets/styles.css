@@ -1110,3 +1110,126 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
   #lantern{animation:none}
   .scroll-locked .chart-fill,.scroll-locked .ladder-bar > i,.scroll-locked .vbar .vcol{animation:none !important}
 }
+
+/* ── round 2, item 5: accessibility ─────────────────────────────────────── */
+
+/* Standard visually-hidden pattern (clip, not display:none, so screen
+   readers still reach it) for the slide-change announcer below. */
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+
+/* Skip-to-story link: off-screen (top:-48px, not display:none, so it stays
+   in the tab order) until it receives keyboard focus, then slides onto the
+   frame. Brand-matched card treatment rather than a bare browser-default
+   yellow strip. */
+.skip-link{
+  position:fixed;left:10px;top:-60px;z-index:300;
+  background:var(--paper);color:var(--ink);
+  padding:11px 18px;border-radius:40px 10px 36px 10px/10px 36px 10px 40px;
+  border:2px solid var(--ink-strong);
+  font-family:'Grandstander';font-weight:800;font-size:14px;
+  text-decoration:none;
+  transition:top .25s var(--ease);
+}
+.skip-link:focus{top:10px;outline:none}
+@media(prefers-reduced-motion:reduce){.skip-link{transition:none}}
+
+/* Keyboard focus rings, in brand coral/leaf rather than the browser default,
+   on every real keyboard-reachable control: the loader's "Try again" button
+   and the recap's CTA/replay buttons (.btn, built in app.js/slides.js), the
+   share sheet's Share/Download/Close controls (.sbtn, including #shareclose
+   which is a role="button" span), the skip link above, and #slides itself --
+   Chromium makes a scrollable region like a tall slide's .slide programmatically
+   focusable so arrow keys can scroll it, and it otherwise renders the
+   browser's plain default ring for that. #frame is included too even though
+   it currently carries no tabindex of its own (its "tap zones" are pointer
+   click regions, not separate focusable elements -- the keyboard equivalent
+   is the existing ArrowLeft/ArrowRight document-level handler in app.js) --
+   this is a no-op today and a safety net if that ever changes. */
+.btn:focus-visible,
+.sbtn:focus-visible,
+.slide:focus-visible,
+#slides:focus-visible,
+#frame:focus-visible{
+  outline:3px solid var(--coral-onwhite);
+  outline-offset:2px;
+  border-radius:10px;
+}
+.btn.ghost:focus-visible,
+.sbtn.ghost:focus-visible{outline-color:var(--leaf-onwhite)}
+.slide:focus-visible,#slides:focus-visible,#frame:focus-visible{outline-offset:-3px}
+
+/* ── round 2, item 2: desktop parallax ──────────────────────────────────── */
+/* app.js applies a small translate3d to each .vlayer's OWN transform (not the
+   child <svg>'s -- that one already carries the tuned --pan transition, see
+   above, and is left untouched) via --parx/--pary, on pointermove, gated
+   there to fine-pointer/hover-capable devices with reduced motion off. The
+   transition here is what smooths between pointermove samples; it composes
+   fine with the existing per-layer --pan transform since they live on two
+   different elements (.vlayer wrapper vs. its inner svg). */
+@media (hover:hover) and (pointer:fine){
+  .vlayer{
+    transform:translate3d(var(--parx,0px),var(--pary,0px),0);
+    transition:transform .35s var(--ease);
+    will-change:transform;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .vlayer{transform:none !important;transition:none}
+}
+
+/* ── round 2, item 4: first-open swipe hint ─────────────────────────────── */
+/* A trail of three dots drifting left under slide one only, hinting at the
+   swipe-to-advance gesture without ever blocking a real tap (pointer-events
+   none) or repeating (app.js gates the whole thing behind a one-time
+   localStorage flag and skips it outright under reduced motion). */
+.swipe-hint{
+  position:absolute;left:50%;bottom:104px;z-index:5;
+  transform:translateX(-50%);
+  display:flex;gap:7px;pointer-events:none;
+  opacity:0;
+  animation:hint-fade 2.6s var(--ease) 1 both;
+}
+.swipe-hint i{
+  width:7px;height:7px;border-radius:50%;background:var(--ink);opacity:.4;
+  animation:hint-drift 1.15s ease-in-out infinite;
+}
+.swipe-hint i:nth-child(2){animation-delay:.14s}
+.swipe-hint i:nth-child(3){animation-delay:.28s}
+@keyframes hint-drift{0%,100%{transform:translateX(0)}50%{transform:translateX(-11px)}}
+@keyframes hint-fade{0%{opacity:0}14%{opacity:1}80%{opacity:1}100%{opacity:0}}
+@media(min-width:560px){.swipe-hint{bottom:120px}}
+
+/* ── round 2, item 3: share dialog materialize ──────────────────────────── */
+/* A glass surface condensing into place rather than a plain fade: opacity,
+   scale and blur radius all move together on open, driven purely by CSS off
+   the dialog's native [open] state (showModal()/close() in share.js are
+   unchanged) via @starting-style + transition-behavior: allow-discrete, which
+   is also what lets the same treatment play in reverse on close instead of
+   the dialog vanishing from the top layer instantly. */
+#sharewrap{
+  opacity:0;transform:scale(.94);filter:blur(7px);
+  transition:opacity .32s var(--ease),transform .32s var(--ease),filter .32s var(--ease),
+             display .32s allow-discrete,overlay .32s allow-discrete;
+}
+#sharewrap[open]{opacity:1;transform:scale(1);filter:blur(0)}
+@starting-style{
+  #sharewrap[open]{opacity:0;transform:scale(.94);filter:blur(7px)}
+}
+#sharewrap::backdrop{
+  opacity:0;
+  transition:opacity .32s var(--ease),display .32s allow-discrete,overlay .32s allow-discrete;
+}
+#sharewrap[open]::backdrop{opacity:1}
+@starting-style{
+  #sharewrap[open]::backdrop{opacity:0}
+}
+/* Reduced motion: a plain fast opacity fade, no scale/blur -- matches the
+   REDUCED pattern used everywhere else (the global `*{transition-duration:
+   .01ms}` rule above already makes this near-instant; this just also removes
+   the scale/blur so nothing momentarily distorts on the way through). */
+@media(prefers-reduced-motion:reduce){
+  #sharewrap,#sharewrap[open]{transform:none !important;filter:none !important}
+}

@@ -10,7 +10,15 @@
 // visit; api.js separately makes the DATA available offline via localStorage.
 // Neither on its own would give a full instant-and-offline second open.
 
-var CACHE_NAME = 'celaville-wrapped-v1';
+// Bump this on every deploy that changes a precached file. Cache-first alone
+// (the original strategy here) only re-fetches when the SW SCRIPT ITSELF
+// changes bytes -- if only index.html/app.js/styles.css/etc change, browsers
+// with an already-installed SW would serve the stale precache forever, with
+// no way back short of the visitor manually clearing site data. Bumping the
+// name forces a real install/activate cycle; the stale-while-revalidate
+// fetch handler below is the second half of the fix, for the gap between
+// deploys where a bump was forgotten.
+var CACHE_NAME = 'celaville-wrapped-v2';
 var PRECACHE = [
   './',
   './index.html',
@@ -54,24 +62,29 @@ self.addEventListener('fetch', function(event){
     return;
   }
 
-  // Everything same-origin: cache-first, falling back to network and then
-  // populating the cache for next time.
+  // Everything same-origin: stale-while-revalidate, not plain cache-first.
+  // A cached copy (if any) answers immediately -- so a repeat visit is still
+  // instant -- but every request ALSO goes to the network in the background
+  // and re-populates the cache regardless. That means a forgotten CACHE_NAME
+  // bump above no longer strands a returning visitor on a stale bundle
+  // forever: the very next load after a deploy quietly catches up, instead
+  // of needing a hard refresh or a manual "clear site data".
   if(url.origin === self.location.origin){
     event.respondWith(
       caches.match(event.request).then(function(cached){
-        if(cached) return cached;
-        return fetch(event.request).then(function(res){
+        var network = fetch(event.request).then(function(res){
           if(res && res.ok){
             var copy = res.clone();
             caches.open(CACHE_NAME).then(function(cache){ cache.put(event.request, copy); });
           }
           return res;
         }).catch(function(){
-          // Offline and not cached -- for a navigation, fall back to the
+          // Offline and nothing cached -- for a navigation, fall back to the
           // shell so the app can still boot from localStorage's payload
           // cache instead of a bare browser error page.
           if(event.request.mode === 'navigate') return caches.match('./index.html');
         });
+        return cached || network;
       })
     );
   }

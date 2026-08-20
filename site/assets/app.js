@@ -112,6 +112,7 @@ function buildDom(){
   });
   warmEl=document.getElementById('vwarm'); skyEl=document.getElementById('vsky');
   walkerEl=document.getElementById('walker'); printsEl=document.getElementById('prints');
+  initParallax();
 }
 
 /* ── walking through the village ──────────────────────────────────────────
@@ -197,6 +198,116 @@ function animateDonuts(root){
   });
 }
 
+/* ── round 2, item 5: screen-reader companion ─────────────────────────────
+   Mirrors each slide's kicker + heading into the visually-hidden #slidelive
+   region (index.html) so a reader following along by ear hears the same
+   beats show() puts on screen, every time the slide changes. */
+var liveEl = document.getElementById('slidelive');
+function announceSlide(i){
+  if(!liveEl || !slideEls[i]) return;
+  var root = slideEls[i];
+  var kicker = root.querySelector('.kicker');
+  var heading = root.querySelector('h1,h2,h3');
+  var parts = [];
+  if(kicker) parts.push(kicker.textContent.trim());
+  if(heading) parts.push(heading.textContent.trim());
+  liveEl.textContent = parts.length ? parts.join(' — ') : ('Slide '+(i+1)+' of '+S.length);
+}
+
+/* ── round 2, item 1: browser history integration ─────────────────────────
+   Slide 0 is left alone entirely -- it's the page's own natural load state,
+   so browser back from there exits the page, which is exactly right. The
+   FIRST time the reader moves off it, one pushState plants a single new
+   history entry; every slide after that replaces that same entry instead of
+   growing a 24-deep stack. That means a hardware/gesture back from any
+   slide N>0 lands on slide 0 in one hop (not a step-by-step unwind) and a
+   second back from there leaves the page -- the cadence the brief's own
+   parenthetical calls out as the one that feels right for a swipe deck this
+   long. suppressHistoryPush guards the one call site (the popstate handler
+   below) that must drive show() WITHOUT re-writing history it just came from. */
+var historyStarted = false, suppressHistoryPush = false;
+function updateHistoryForSlide(i){
+  if(suppressHistoryPush || !window.history || !history.pushState) return;
+  if(i===0) return; // slide 0 keeps whatever entry is already there -- see above
+  try{
+    if(!historyStarted){ historyStarted = true; history.pushState({slide:i}, '', location.href); }
+    else history.replaceState({slide:i}, '', location.href);
+  }catch(e){}
+}
+window.addEventListener('popstate', function(e){
+  var target = (e.state && typeof e.state.slide==='number') ? e.state.slide : 0;
+  suppressHistoryPush = true;
+  show(target);
+  suppressHistoryPush = false;
+});
+
+/* ── round 2, item 4: first-open swipe hint ───────────────────────────────
+   A one-time, self-dismissing cue that the deck is swipeable. Gated on a
+   localStorage flag set the instant this runs (so even a reload this same
+   session won't replay it) and skipped outright under reduced motion --
+   the flag still gets set in that case, per the brief, so it's not
+   perpetually "pending". pointer-events:none (styles.css) and its own
+   automatic cleanup mean it can never sit in the way of a real tap/swipe. */
+var SWIPE_HINT_KEY = 'celaville_swiped_hint_v1';
+function maybeShowSwipeHint(){
+  try{
+    if(localStorage.getItem(SWIPE_HINT_KEY)) return;
+    localStorage.setItem(SWIPE_HINT_KEY, '1');
+  }catch(e){ return; } // no localStorage (private mode etc) -- skip, nothing to gate on
+  if(REDUCED) return;
+  var hint = document.createElement('div');
+  hint.className = 'swipe-hint';
+  hint.setAttribute('aria-hidden','true');
+  hint.innerHTML = '<i></i><i></i><i></i>';
+  frameEl.appendChild(hint);
+  var done=false;
+  function cleanup(){ if(done) return; done=true; if(hint.parentNode) hint.parentNode.removeChild(hint); }
+  hint.addEventListener('animationend', cleanup);
+  setTimeout(cleanup, 3200); // safety net if animationend never fires
+}
+
+/* ── round 2, item 2: desktop parallax ────────────────────────────────────
+   A pointer-follow tilt on the village layers, fine-pointer/hover-capable
+   devices only (a touch device's "pointer" IS the drag gesture already
+   driving the swipe system -- layering a second, fake-hover reading of the
+   same touch on top of it would fight that, not complement it) and only
+   when reduced motion is off. rAF-throttled so a fast mousemove burst can't
+   queue more style writes than the display can paint. Composes with the
+   existing --pan pan/zoom transform by living on a different element
+   entirely: --pan drives .vlayer > svg's transform (unchanged, tuned); this
+   drives .vlayer's OWN transform (styles.css), a separate box one level up. */
+var PARALLAX_OK = !REDUCED && window.matchMedia &&
+  window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+var PARALLAX_RATE = {vclouds:0.35, vfar:0.7, vmid:1.15, vnear:1.7};
+var PARALLAX_MAX = 5; // px at the frame edge, before a layer's own rate multiplies it
+function initParallax(){
+  if(!PARALLAX_OK) return;
+  var raf=null, px=0, py=0;
+  function apply(){
+    raf=null;
+    for(var id in PARALLAX_RATE){
+      var layer=document.getElementById(id);
+      if(!layer) continue;
+      layer.style.setProperty('--parx', (px*PARALLAX_RATE[id]).toFixed(2)+'px');
+      layer.style.setProperty('--pary', (py*PARALLAX_RATE[id]).toFixed(2)+'px');
+    }
+  }
+  // Listens on #frame, not #village -- #village is pointer-events:none (it's
+  // a decorative layer sitting behind the slide deck), so it would never
+  // itself receive a pointermove to react to.
+  frameEl.addEventListener('pointermove', function(e){
+    if(e.pointerType && e.pointerType!=='mouse') return; // belt+suspenders alongside the media query above
+    var r=frameEl.getBoundingClientRect();
+    var nx=((e.clientX-r.left)/r.width)-0.5, ny=((e.clientY-r.top)/r.height)-0.5;
+    px = nx*2*PARALLAX_MAX; py = ny*2*PARALLAX_MAX;
+    if(!raf) raf=requestAnimationFrame(apply);
+  });
+  frameEl.addEventListener('pointerleave', function(){
+    px=0; py=0;
+    if(!raf) raf=requestAnimationFrame(apply);
+  });
+}
+
 function show(i){
   if(i<0) i=0;
   if(i>=S.length) i=S.length-1;
@@ -246,6 +357,15 @@ function show(i){
     applyScrollState(true);
     if(slideEls[i].classList.contains('v-persona')) vibrate(30);
     if(i===S.length-1) vibrate([0,14,110,14,240,18]); // matches fireworksHTML's 0/.35/.7s burst delays
+    updateHistoryForSlide(i);
+    announceSlide(i);
+    if(i!==0){
+      // Leaving slide 0 for any reason (swipe, tap, keyboard, popstate) is
+      // exactly when the one-time hint has done its job -- clear it so it
+      // can never survive a swipe back to slide 0 and sit there stale.
+      var h=frameEl.querySelector('.swipe-hint');
+      if(h && h.parentNode) h.parentNode.removeChild(h);
+    }
   }
   // View Transitions API, scoped to act breaks only: #village and #bars keep
   // their view-transition-name (styles.css) so they persist unchanged across
@@ -562,6 +682,7 @@ function revealFromLoader(){
       loaderEl.removeEventListener('transitionend',done);
       loaderEl.remove();
       [villageEl, slide0].forEach(function(el){ el.classList.remove('ldr-fall','ldr-land'); });
+      maybeShowSwipeHint(); // one-time, slide-one-only -- see its own comment above
     });
   }, Math.max(0, LOAD_MIN-elapsed));
 }

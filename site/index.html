@@ -31,6 +31,12 @@
 </head>
 <body>
 
+<!-- Keyboard-only entry point: invisible until focused, jumps straight past
+     the loader chrome and SVG defs into the slide deck itself. #slides
+     carries tabindex="-1" below so it's a valid, focusable jump target even
+     though it's not natively interactive. -->
+<a class="skip-link" href="#slides">Skip to story</a>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <filter id="rough-edge" x="-20%" y="-20%" width="140%" height="140%">
@@ -466,7 +472,13 @@
     <line x1="15" y1="40" x2="15" y2="46" stroke="rgba(79,64,54,.7)" stroke-width="1.3"/>
   </svg>
   <div id="bars"></div>
-  <div id="slides"></div>
+  <div id="slides" tabindex="-1"></div>
+  <!-- Screen-reader companion to the visual slide deck: app.js's show()
+       writes each slide's kicker + heading here whenever the slide changes,
+       so a reader following along by ear hears the same beats a sighted
+       reader sees. Visually hidden (sr-only, see styles.css) -- not a UI
+       element, never shown on screen. -->
+  <div id="slidelive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   <div id="hint">tap to continue &middot; hold to pause</div>
   <!-- Everything above is already fully data-driven the instant this HTML
        arrives (doGet blocked on the Sheets read before it ever sent the
