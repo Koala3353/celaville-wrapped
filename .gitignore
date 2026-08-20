@@ -1,3 +1,18 @@
 .DS_Store
 /tmp/
 *.log
+.claude/
+
+# This repo is public (GitHub Pages needs that for the free custom-domain
+# tier). Everything below is the internal Apps Script side -- the sheet
+# automation, member data field-parsing logic, and the old HtmlService
+# template it's replacing -- and stays local-only, deployed straight to
+# Apps Script the way it always has been. Only /site (the static page this
+# repo exists to publish) is meant to be tracked here.
+/Code.gs
+/Wrapped.html
+/README.md
+/preview/
+/artifact-build/
+/gemini-svg-prompts.md
+/*.png

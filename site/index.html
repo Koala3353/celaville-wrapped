@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Celaville Wrapped</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- These URLs carry a personal token (?id=...) -- must never be indexed. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#BFE0F3">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Members share these links in group chats -- a real preview card is a
+     brand-new capability versus the old script.google.com HtmlService page,
+     which rendered as a bare, preview-less URL. og:description reuses
+     CFG.PREHEADER's own line so the voice matches the email that sent it. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Celaville Wrapped">
+<meta property="og:description" content="We read all the sign-up forms and pulled out the parts that are only yours.">
+<meta property="og:image" content="https://wrapped.ateneoceladon.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Celaville Wrapped">
+<meta name="twitter:description" content="We read all the sign-up forms and pulled out the parts that are only yours.">
+<meta name="twitter:image" content="https://wrapped.ateneoceladon.com/og.png">
+
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough-edge" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+    </filter>
+  </defs>
+</svg>
+
+<div id="stage"><div id="frame">
+  <!-- ── Celaville, painted end to end ────────────────────────────────────
+       Panorama width 2600 against a 520 frame, so there is real distance to
+       cover. Landmarks are spaced so each act arrives somewhere new. -->
+  <div id="village" aria-hidden="true">
+    <div id="vsky"></div>
+    <div id="vwarm"></div>
+
+    <!-- clouds: slowest, so they read as far away -->
+    <div class="vlayer" id="vclouds">
+      <svg viewBox="0 0 2600 660" width="2600" height="660" preserveAspectRatio="xMinYMid slice">
+        <!-- Watercolour clouds: small, soft-edged, layered. Two passes per
+             cloud (a wide pale base plus a brighter cap) so the edge reads as
+             washed rather than cut, without paying for a blur filter on a
+             layer that is already being transformed every slide. -->
+        <!-- Gemini-generated cloud clusters (gemini-svg-prompts.md, prompt 9) -->
+        <svg x="75" y="63" width="150" height="67" viewBox="0 0 90 40">
+  <ellipse cx="9" cy="27" rx="4" ry="2.2" fill="#FFFCF7"/>
+  <ellipse cx="83" cy="22" rx="3.5" ry="2" fill="#FFFCF7"/>
+  <path d="M 15,27 C 10,27 9,23 13,22 C 13,17.5 18,15.5 23,17.5 C 26,11.5 34,9.5 40,12.5 C 45,6.5 55,6.5 60,11.5 C 66,8.5 74,11.5 76,16.5 C 81,16.5 85,20.5 83,25.5 C 81,29.5 75,30.5 71,27.5 C 66,31.5 57,31.5 51,28.5 C 45,32.5 35,32.5 30,28.5 C 25,30.5 19,30.5 15,27 Z" fill="#FFFCF7"/>
+</svg>
+        <svg x="525" y="37" width="150" height="67" viewBox="0 0 90 40">
+  <ellipse cx="9" cy="27" rx="4" ry="2.2" fill="#FFFCF7"/>
+  <ellipse cx="83" cy="22" rx="3.5" ry="2" fill="#FFFCF7"/>
+  <path d="M 15,27 C 10,27 9,23 13,22 C 13,17.5 18,15.5 23,17.5 C 26,11.5 34,9.5 40,12.5 C 45,6.5 55,6.5 60,11.5 C 66,8.5 74,11.5 76,16.5 C 81,16.5 85,20.5 83,25.5 C 81,29.5 75,30.5 71,27.5 C 66,31.5 57,31.5 51,28.5 C 45,32.5 35,32.5 30,28.5 C 25,30.5 19,30.5 15,27 Z" fill="#FFFCF7"/>
+</svg>
+        <svg x="935" y="71" width="150" height="67" viewBox="0 0 90 40">
+  <ellipse cx="9" cy="27" rx="4" ry="2.2" fill="#FFFCF7"/>
+  <ellipse cx="83" cy="22" rx="3.5" ry="2" fill="#FFFCF7"/>
+  <path d="M 15,27 C 10,27 9,23 13,22 C 13,17.5 18,15.5 23,17.5 C 26,11.5 34,9.5 40,12.5 C 45,6.5 55,6.5 60,11.5 C 66,8.5 74,11.5 76,16.5 C 81,16.5 85,20.5 83,25.5 C 81,29.5 75,30.5 71,27.5 C 66,31.5 57,31.5 51,28.5 C 45,32.5 35,32.5 30,28.5 C 25,30.5 19,30.5 15,27 Z" fill="#FFFCF7"/>
+</svg>
+        <svg x="1375" y="31" width="150" height="67" viewBox="0 0 90 40">
+  <ellipse cx="9" cy="27" rx="4" ry="2.2" fill="#FFFCF7"/>
+  <ellipse cx="83" cy="22" rx="3.5" ry="2" fill="#FFFCF7"/>
+  <path d="M 15,27 C 10,27 9,23 13,22 C 13,17.5 18,15.5 23,17.5 C 26,11.5 34,9.5 40,12.5 C 45,6.5 55,6.5 60,11.5 C 66,8.5 74,11.5 76,16.5 C 81,16.5 85,20.5 83,25.5 C 81,29.5 75,30.5 71,27.5 C 66,31.5 57,31.5 51,28.5 C 45,32.5 35,32.5 30,28.5 C 25,30.5 19,30.5 15,27 Z" fill="#FFFCF7"/>
+</svg>
+        <svg x="1805" y="65" width="150" height="67" viewBox="0 0 90 40">
+  <ellipse cx="9" cy="27" rx="4" ry="2.2" fill="#FFFCF7"/>
+  <ellipse cx="83" cy="22" rx="3.5" ry="2" fill="#FFFCF7"/>
+  <path d="M 15,27 C 10,27 9,23 13,22 C 13,17.5 18,15.5 23,17.5 C 26,11.5 34,9.5 40,12.5 C 45,6.5 55,6.5 60,11.5 C 66,8.5 74,11.5 76,16.5 C 81,16.5 85,20.5 83,25.5 C 81,29.5 75,30.5 71,27.5 C 66,31.5 57,31.5 51,28.5 C 45,32.5 35,32.5 30,28.5 C 25,30.5 19,30.5 15,27 Z" fill="#FFFCF7"/>
+</svg>
+        <svg x="2245" y="39" width="150" height="67" viewBox="0 0 90 40">
+  <ellipse cx="9" cy="27" rx="4" ry="2.2" fill="#FFFCF7"/>
+  <ellipse cx="83" cy="22" rx="3.5" ry="2" fill="#FFFCF7"/>
+  <path d="M 15,27 C 10,27 9,23 13,22 C 13,17.5 18,15.5 23,17.5 C 26,11.5 34,9.5 40,12.5 C 45,6.5 55,6.5 60,11.5 C 66,8.5 74,11.5 76,16.5 C 81,16.5 85,20.5 83,25.5 C 81,29.5 75,30.5 71,27.5 C 66,31.5 57,31.5 51,28.5 C 45,32.5 35,32.5 30,28.5 C 25,30.5 19,30.5 15,27 Z" fill="#FFFCF7"/>
+</svg>
+        <!-- kites, from the brand book element set: the village flies them -->
+        <!-- Gemini-generated kites (gemini-svg-prompts.md, prompt 8) -->
+        <svg x="784" y="186" width="52" height="71.5" viewBox="0 0 40 55" aria-hidden="true">
+  <path d="M 15,23 C 11,32 6,43 2,54" fill="none" stroke="#4F4036" stroke-width="1" stroke-linecap="round"/>
+  <line x1="24.2" y1="9" x2="15" y2="23" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="21.8" y1="23" x2="15" y2="23" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M 21,28 C 17,33 13,36 17,41 C 21,46 15,50 12,53" fill="none" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+  <polygon points="18,33 13,31.5 15,36" fill="#E4B64A" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="16,39 21,37.5 19,42" fill="#D94F40" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="18.5,44 14,45.5 16.5,48.5" fill="#5E8F6B" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="14,50.5 18.5,51.5 15,54.5" fill="#E4B64A" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="25,4 10,15 23,16" fill="#D94F40"/>
+  <polygon points="25,4 36,17 23,16" fill="#FFFCF7"/>
+  <polygon points="21,28 36,17 23,16" fill="#D94F40"/>
+  <polygon points="21,28 10,15 23,16" fill="#FFFCF7"/>
+  <polygon points="25,4 36,17 21,28 10,15" fill="none" stroke="#4F4036" stroke-width="1.4" stroke-linejoin="round"/>
+  <line x1="25" y1="4" x2="21" y2="28" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="10" y1="15" x2="36" y2="17" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+</svg>
+        <svg x="2033" y="168" width="52" height="71.5" viewBox="0 0 40 55" aria-hidden="true">
+  <path d="M 15,23 C 11,32 6,43 2,54" fill="none" stroke="#4F4036" stroke-width="1" stroke-linecap="round"/>
+  <line x1="24.2" y1="9" x2="15" y2="23" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+  <line x1="21.8" y1="23" x2="15" y2="23" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+  <path d="M 21,28 C 17,33 13,36 17,41 C 21,46 15,50 12,53" fill="none" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+  <polygon points="18,33 13,31.5 15,36" fill="#E4B64A" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="16,39 21,37.5 19,42" fill="#D94F40" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="18.5,44 14,45.5 16.5,48.5" fill="#5E8F6B" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="14,50.5 18.5,51.5 15,54.5" fill="#E4B64A" stroke="#4F4036" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="25,4 10,15 23,16" fill="#D94F40"/>
+  <polygon points="25,4 36,17 23,16" fill="#FFFCF7"/>
+  <polygon points="21,28 36,17 23,16" fill="#D94F40"/>
+  <polygon points="21,28 10,15 23,16" fill="#FFFCF7"/>
+  <polygon points="25,4 36,17 21,28 10,15" fill="none" stroke="#4F4036" stroke-width="1.4" stroke-linejoin="round"/>
+  <line x1="25" y1="4" x2="21" y2="28" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="10" y1="15" x2="36" y2="17" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+</svg>
+      </svg>
+    </div>
+
+    <!-- far hills: sage, the receding ridge -->
+    <div class="vlayer" id="vfar">
+      <svg viewBox="0 0 2600 200" width="2600" height="200" preserveAspectRatio="xMinYMax slice">
+        <path fill="#A8C59A" d="M0 104.2 C19.0 104.2 19.0 104.7 38.0 104.7 C57.0 104.7 57.0 101.7 76.0 101.7 C95.0 101.7 95.0 97.3 114.0 97.3 C133.0 97.3 133.0 93.9 152.0 93.9 C171.0 93.9 171.0 92.9 190.0 92.9 C209.0 92.9 209.0 94.4 228.0 94.4 C247.0 94.4 247.0 96.8 266.0 96.8 C285.0 96.8 285.0 97.7 304.0 97.7 C323.0 97.7 323.0 95.5 342.0 95.5 C361.0 95.5 361.0 89.8 380.0 89.8 C399.0 89.8 399.0 81.7 418.0 81.7 C437.0 81.7 437.0 73.9 456.0 73.9 C475.0 73.9 475.0 68.8 494.0 68.8 C513.0 68.8 513.0 68.0 532.0 68.0 C551.0 68.0 551.0 71.5 570.0 71.5 C589.0 71.5 589.0 77.4 608.0 77.4 C627.0 77.4 627.0 83.2 646.0 83.2 C665.0 83.2 665.0 86.9 684.0 86.9 C703.0 86.9 703.0 87.6 722.0 87.6 C741.0 87.6 741.0 86.3 760.0 86.3 C779.0 86.3 779.0 85.0 798.0 85.0 C817.0 85.0 817.0 85.7 836.0 85.7 C855.0 85.7 855.0 89.5 874.0 89.5 C893.0 89.5 893.0 95.9 912.0 95.9 C931.0 95.9 931.0 102.9 950.0 102.9 C969.0 102.9 969.0 107.8 988.0 107.8 C1007.0 107.8 1007.0 108.7 1026.0 108.7 C1045.0 108.7 1045.0 105.1 1064.0 105.1 C1083.0 105.1 1083.0 98.3 1102.0 98.3 C1121.0 98.3 1121.0 90.6 1140.0 90.6 C1159.0 90.6 1159.0 84.7 1178.0 84.7 C1197.0 84.7 1197.0 82.0 1216.0 82.0 C1235.0 82.0 1235.0 82.4 1254.0 82.4 C1273.0 82.4 1273.0 84.2 1292.0 84.2 C1311.0 84.2 1311.0 85.2 1330.0 85.2 C1349.0 85.2 1349.0 83.8 1368.0 83.8 C1387.0 83.8 1387.0 79.8 1406.0 79.8 C1425.0 79.8 1425.0 74.4 1444.0 74.4 C1463.0 74.4 1463.0 70.1 1482.0 70.1 C1501.0 70.1 1501.0 69.1 1520.0 69.1 C1539.0 69.1 1539.0 72.5 1558.0 72.5 C1577.0 72.5 1577.0 79.6 1596.0 79.6 C1615.0 79.6 1615.0 88.2 1634.0 88.2 C1653.0 88.2 1653.0 95.7 1672.0 95.7 C1691.0 95.7 1691.0 99.9 1710.0 99.9 C1729.0 99.9 1729.0 100.3 1748.0 100.3 C1767.0 100.3 1767.0 98.0 1786.0 98.0 C1805.0 98.0 1805.0 95.1 1824.0 95.1 C1843.0 95.1 1843.0 93.8 1862.0 93.8 C1881.0 93.8 1881.0 95.1 1900.0 95.1 C1919.0 95.1 1919.0 98.3 1938.0 98.3 C1957.0 98.3 1957.0 101.7 1976.0 101.7 C1995.0 101.7 1995.0 102.7 2014.0 102.7 C2033.0 102.7 2033.0 100.0 2052.0 100.0 C2071.0 100.0 2071.0 93.5 2090.0 93.5 C2109.0 93.5 2109.0 84.8 2128.0 84.8 C2147.0 84.8 2147.0 76.7 2166.0 76.7 C2185.0 76.7 2185.0 71.5 2204.0 71.5 C2223.0 71.5 2223.0 70.6 2242.0 70.6 C2261.0 70.6 2261.0 73.4 2280.0 73.4 C2299.0 73.4 2299.0 78.0 2318.0 78.0 C2337.0 78.0 2337.0 81.9 2356.0 81.9 C2375.0 81.9 2375.0 83.5 2394.0 83.5 C2413.0 83.5 2413.0 82.6 2432.0 82.6 C2451.0 82.6 2451.0 80.4 2470.0 80.4 C2489.0 80.4 2489.0 79.2 2508.0 79.2 C2527.0 79.2 2527.0 80.8 2546.0 80.8 C2565.0 80.8 2565.0 86.0 2584.0 86.0 C2603.0 86.0 2603.0 93.8 2622.0 93.8 L2600 200 L0 200 Z"/>
+        <!-- These sit on the ridge fill's own y at each x (read directly off
+             the path data above: 97.7 @300, 82.4 @1240, 93.5 @2080), not on
+             values left over from the ridge's earlier, differently-shaped
+             curve -- that mismatch is what let them float disconnected
+             above the hill line on slides 1-7. -->
+        <g fill="#93B587" opacity=".75">
+          <path d="M300 97.7 q22-30 44 0 -22 8-44 0z"/><path d="M1240 82.4 q20-28 40 0 -20 8-40 0z"/>
+          <path d="M2080 93.5 q22-30 44 0 -22 8-44 0z"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- mid hills: the village proper, houses and trees -->
+    <div class="vlayer" id="vmid">
+      <svg viewBox="0 0 2600 190" width="2600" height="190" preserveAspectRatio="xMinYMax slice">
+        <path fill="#5E8F6B" d="M0 87.5 C19.0 87.5 19.0 89.7 38.0 89.7 C57.0 89.7 57.0 90.6 76.0 90.6 C95.0 90.6 95.0 87.0 114.0 87.0 C133.0 87.0 133.0 78.9 152.0 78.9 C171.0 78.9 171.0 70.1 190.0 70.1 C209.0 70.1 209.0 65.4 228.0 65.4 C247.0 65.4 247.0 67.3 266.0 67.3 C285.0 67.3 285.0 74.0 304.0 74.0 C323.0 74.0 323.0 81.1 342.0 81.1 C361.0 81.1 361.0 84.8 380.0 84.8 C399.0 84.8 399.0 84.3 418.0 84.3 C437.0 84.3 437.0 82.5 456.0 82.5 C475.0 82.5 475.0 83.5 494.0 83.5 C513.0 83.5 513.0 89.0 532.0 89.0 C551.0 89.0 551.0 96.7 570.0 96.7 C589.0 96.7 589.0 102.2 608.0 102.2 C627.0 102.2 627.0 101.7 646.0 101.7 C665.0 101.7 665.0 95.1 684.0 95.1 C703.0 95.1 703.0 86.2 722.0 86.2 C741.0 86.2 741.0 79.6 760.0 79.6 C779.0 79.6 779.0 78.0 798.0 78.0 C817.0 78.0 817.0 79.8 836.0 79.8 C855.0 79.8 855.0 81.2 874.0 81.2 C893.0 81.2 893.0 79.0 912.0 79.0 C931.0 79.0 931.0 73.4 950.0 73.4 C969.0 73.4 969.0 68.0 988.0 68.0 C1007.0 68.0 1007.0 67.2 1026.0 67.2 C1045.0 67.2 1045.0 72.7 1064.0 72.7 C1083.0 72.7 1083.0 82.3 1102.0 82.3 C1121.0 82.3 1121.0 91.0 1140.0 91.0 C1159.0 91.0 1159.0 94.9 1178.0 94.9 C1197.0 94.9 1197.0 93.7 1216.0 93.7 C1235.0 93.7 1235.0 90.4 1254.0 90.4 C1273.0 90.4 1273.0 89.2 1292.0 89.2 C1311.0 89.2 1311.0 91.8 1330.0 91.8 C1349.0 91.8 1349.0 96.2 1368.0 96.2 C1387.0 96.2 1387.0 98.0 1406.0 98.0 C1425.0 98.0 1425.0 94.2 1444.0 94.2 C1463.0 94.2 1463.0 85.3 1482.0 85.3 C1501.0 85.3 1501.0 75.5 1520.0 75.5 C1539.0 75.5 1539.0 69.6 1558.0 69.6 C1577.0 69.6 1577.0 69.7 1596.0 69.7 C1615.0 69.7 1615.0 74.0 1634.0 74.0 C1653.0 74.0 1653.0 78.3 1672.0 78.3 C1691.0 78.3 1691.0 79.1 1710.0 79.1 C1729.0 79.1 1729.0 76.7 1748.0 76.7 C1767.0 76.7 1767.0 74.4 1786.0 74.4 C1805.0 74.4 1805.0 76.2 1824.0 76.2 C1843.0 76.2 1843.0 83.3 1862.0 83.3 C1881.0 83.3 1881.0 93.0 1900.0 93.0 C1919.0 93.0 1919.0 100.2 1938.0 100.2 C1957.0 100.2 1957.0 101.6 1976.0 101.6 C1995.0 101.6 1995.0 97.1 2014.0 97.1 C2033.0 97.1 2033.0 90.5 2052.0 90.5 C2071.0 90.5 2071.0 86.2 2090.0 86.2 C2109.0 86.2 2109.0 86.0 2128.0 86.0 C2147.0 86.0 2147.0 88.0 2166.0 88.0 C2185.0 88.0 2185.0 88.1 2204.0 88.1 C2223.0 88.1 2223.0 83.6 2242.0 83.6 C2261.0 83.6 2261.0 75.4 2280.0 75.4 C2299.0 75.4 2299.0 67.7 2318.0 67.7 C2337.0 67.7 2337.0 65.1 2356.0 65.1 C2375.0 65.1 2375.0 68.9 2394.0 68.9 C2413.0 68.9 2413.0 76.8 2432.0 76.8 C2451.0 76.8 2451.0 84.0 2470.0 84.0 C2489.0 84.0 2489.0 87.0 2508.0 87.0 C2527.0 87.0 2527.0 86.1 2546.0 86.1 C2565.0 86.1 2565.0 84.4 2584.0 84.4 C2603.0 84.4 2603.0 86.0 2622.0 86.0 L2600 190 L0 190 Z"/>
+
+        <!-- Landmarks, planted on the ridge line. The group offset is what
+     puts their footings in the hill instead of above it. -->
+        <g transform="translate(0,26)">
+        <!-- the schoolhouse: act one starts at the gate -->
+<svg x="188" y="8" width="76" height="68" viewBox="0 0 76 68">
+          <rect x="19" y="31" width="38" height="33" rx="1.5" fill="#FFFCF7" stroke="#4F4036" stroke-width="2" stroke-linejoin="round"/>
+          <line x1="16" y1="64" x2="60" y2="64" stroke="#4F4036" stroke-width="2" stroke-linecap="round"/>
+          <path d="M 33,64 L 33,51 A 5,5 0 0 1 43,51 L 43,64 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="41" cy="56" r="1" fill="#E4B64A" stroke="#4F4036" stroke-width="1.5"/>
+          <rect x="23" y="42" width="7" height="9" rx="1.5" fill="#9FD0EB" stroke="#4F4036" stroke-width="2" stroke-linejoin="round"/>
+          <line x1="23" y1="46.5" x2="30" y2="46.5" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="26.5" y1="42" x2="26.5" y2="51" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="21.5" y1="52.5" x2="31.5" y2="52.5" stroke="#4F4036" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="51" cy="46" r="4" fill="#E4B64A" stroke="#4F4036" stroke-width="2"/>
+          <line x1="47" y1="46" x2="55" y2="46" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="51" y1="42" x2="51" y2="50" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 38,6 Q 23,18 8,30 C 12,33 17,33 21,33 L 55,33 C 59,33 64,33 68,30 Q 53,18 38,6 Z" fill="#D94F40" stroke="#4F4036" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M 38,9 L 38,32" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 34,14 Q 28,22 23,32" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 42,14 Q 48,22 53,32" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 34,7 Q 38,4 42,7" fill="none" stroke="#4F4036" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="38" cy="5" r="2" fill="#E4B64A" stroke="#4F4036" stroke-width="2"/>
+        </svg>
+        <!-- little houses along the way -->
+        <!-- Gemini-generated village houses (gemini-svg-prompts.md, prompt 2), coral/yellow/leaf cycled -->
+        <svg x="623" y="50" width="35.6" height="32" viewBox="0 0 50 45">
+          <rect x="12" y="21" width="26" height="21" rx="1" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <line x1="9" y1="42" x2="41" y2="42" stroke="#4F4036" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M 22,42 L 22,33 A 3,3 0 0 1 28,33 L 28,42 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="14.5" y="27" width="5" height="5.5" rx="0.8" fill="#9FD0EB" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="14.5" y1="29.75" x2="19.5" y2="29.75" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="17" y1="27" x2="17" y2="32.5" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 25,5 Q 15,13 5,21.5 Q 25,23.5 45,21.5 Q 35,13 25,5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <svg x="699" y="50" width="35.6" height="32" viewBox="0 0 50 45">
+          <rect x="12" y="21" width="26" height="21" rx="1" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <line x1="9" y1="42" x2="41" y2="42" stroke="#4F4036" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M 22,42 L 22,33 A 3,3 0 0 1 28,33 L 28,42 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="14.5" y="27" width="5" height="5.5" rx="0.8" fill="#9FD0EB" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="14.5" y1="29.75" x2="19.5" y2="29.75" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="17" y1="27" x2="17" y2="32.5" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 25,5 Q 15,13 5,21.5 Q 25,23.5 45,21.5 Q 35,13 25,5 Z" fill="#E4B64A" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <svg x="1325" y="50" width="35.6" height="32" viewBox="0 0 50 45">
+          <rect x="12" y="21" width="26" height="21" rx="1" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <line x1="9" y1="42" x2="41" y2="42" stroke="#4F4036" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M 22,42 L 22,33 A 3,3 0 0 1 28,33 L 28,42 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="14.5" y="27" width="5" height="5.5" rx="0.8" fill="#9FD0EB" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="14.5" y1="29.75" x2="19.5" y2="29.75" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="17" y1="27" x2="17" y2="32.5" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 25,5 Q 15,13 5,21.5 Q 25,23.5 45,21.5 Q 35,13 25,5 Z" fill="#5E8F6B" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <svg x="1404" y="50" width="35.6" height="32" viewBox="0 0 50 45">
+          <rect x="12" y="21" width="26" height="21" rx="1" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <line x1="9" y1="42" x2="41" y2="42" stroke="#4F4036" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M 22,42 L 22,33 A 3,3 0 0 1 28,33 L 28,42 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="14.5" y="27" width="5" height="5.5" rx="0.8" fill="#9FD0EB" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="14.5" y1="29.75" x2="19.5" y2="29.75" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="17" y1="27" x2="17" y2="32.5" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 25,5 Q 15,13 5,21.5 Q 25,23.5 45,21.5 Q 35,13 25,5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <svg x="2214" y="50" width="35.6" height="32" viewBox="0 0 50 45">
+          <rect x="12" y="21" width="26" height="21" rx="1" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <line x1="9" y1="42" x2="41" y2="42" stroke="#4F4036" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M 22,42 L 22,33 A 3,3 0 0 1 28,33 L 28,42 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="14.5" y="27" width="5" height="5.5" rx="0.8" fill="#9FD0EB" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="14.5" y1="29.75" x2="19.5" y2="29.75" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="17" y1="27" x2="17" y2="32.5" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 25,5 Q 15,13 5,21.5 Q 25,23.5 45,21.5 Q 35,13 25,5 Z" fill="#E4B64A" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <!-- the mahjong pavilion, where act four picks up -->
+<svg x="1815" y="25" width="90" height="55" viewBox="0 0 90 55">
+          <line x1="14" y1="44" x2="76" y2="44" stroke="#4F4036" stroke-width="1.8" stroke-linecap="round"/>
+          <rect x="20" y="40" width="50" height="4" rx="0.8" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <line x1="31" y1="28" x2="59" y2="28" stroke="#4F4036" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="36" y1="28" x2="36" y2="32" stroke="#4F4036" stroke-width="1.4"/>
+          <line x1="45" y1="28" x2="45" y2="32" stroke="#4F4036" stroke-width="1.4"/>
+          <line x1="54" y1="28" x2="54" y2="32" stroke="#4F4036" stroke-width="1.4"/>
+          <rect x="31" y="32" width="28" height="3" rx="0.5" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="35" y1="35" x2="35" y2="40" stroke="#4F4036" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="45" y1="35" x2="45" y2="40" stroke="#4F4036" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="55" y1="35" x2="55" y2="40" stroke="#4F4036" stroke-width="1.4" stroke-linecap="round"/>
+          <rect x="26" y="19" width="4" height="21" rx="0.5" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="60" y="19" width="4" height="21" rx="0.5" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <rect x="23" y="18" width="44" height="3" rx="0.5" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M 26,24 L 31,19" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 64,24 L 59,19" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="45" y1="21" x2="45" y2="23.5" stroke="#4F4036" stroke-width="1.4"/>
+          <line x1="43" y1="23.5" x2="47" y2="23.5" stroke="#4F4036" stroke-width="1.4" stroke-linecap="round"/>
+          <ellipse cx="45" cy="26.5" rx="3.5" ry="3" fill="#E4B64A" stroke="#4F4036" stroke-width="1.5"/>
+          <line x1="45" y1="29.5" x2="45" y2="32" stroke="#D94F40" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M 45,4 Q 28,11 6,20 C 10,21 16,21 22,20.5 L 68,20.5 C 74,21 80,21 84,20 Q 62,11 45,4 Z" fill="#D94F40" stroke="#4F4036" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M 45,6 L 45,19" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 41,8 Q 30,13 18,20" stroke="#4F4036" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M 49,8 Q 60,13 72,20" stroke="#4F4036" stroke-width="1.4" stroke-linecap="round"/>
+          <circle cx="45" cy="3.5" r="2" fill="#E4B64A" stroke="#4F4036" stroke-width="1.8"/>
+        </svg>
+        <!-- trees, from the brand book plant set -->
+        <!-- Gemini-generated apple trees (gemini-svg-prompts.md, prompt 4) -->
+        <g>
+          <svg x="427" y="30" width="24" height="55" viewBox="0 0 24 55">
+            <line x1="5" y1="52" x2="19" y2="52" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 9.5,52 C 10,46 10.5,39 10.5,33 L 8.5,27 C 9.5,27.5 10.5,29.5 11.5,31.5 L 12.5,31.5 C 13.5,29.5 14.5,27.5 15.5,27 L 13.5,33 C 13.5,39 14,46 14.5,52 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 12,4 C 15.5,4 18.5,6.5 19,10 C 21.5,11 23,14 22,17 C 23.5,20.5 22.5,25 19.5,28 C 19.5,32 16.5,35 13,35 C 10.5,35 8.5,33.5 7.5,31.5 C 5,32.5 2.5,30.5 2,27.5 C 0.8,24 1.5,20 3,17.5 C 1.8,14.5 3,11 5.5,9.5 C 6.5,6 9,4 12,4 Z" fill="#5E8F6B" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 7,13 C 9,11.5 11.5,12 12,14" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17,14 C 15.5,16.5 13.5,17 11.5,17" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 6.5,23 C 8.5,22.5 11,23.5 11.5,26" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17.5,22 C 15.5,21.5 14,23 13.5,25" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="8" cy="10.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="16" cy="11.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="11.5" cy="16.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="6" cy="19.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="18" cy="20.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="12.5" cy="26.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          </svg>
+          <svg x="957" y="26" width="24" height="55" viewBox="0 0 24 55">
+            <line x1="5" y1="52" x2="19" y2="52" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 9.5,52 C 10,46 10.5,39 10.5,33 L 8.5,27 C 9.5,27.5 10.5,29.5 11.5,31.5 L 12.5,31.5 C 13.5,29.5 14.5,27.5 15.5,27 L 13.5,33 C 13.5,39 14,46 14.5,52 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 12,4 C 15.5,4 18.5,6.5 19,10 C 21.5,11 23,14 22,17 C 23.5,20.5 22.5,25 19.5,28 C 19.5,32 16.5,35 13,35 C 10.5,35 8.5,33.5 7.5,31.5 C 5,32.5 2.5,30.5 2,27.5 C 0.8,24 1.5,20 3,17.5 C 1.8,14.5 3,11 5.5,9.5 C 6.5,6 9,4 12,4 Z" fill="#5E8F6B" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 7,13 C 9,11.5 11.5,12 12,14" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17,14 C 15.5,16.5 13.5,17 11.5,17" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 6.5,23 C 8.5,22.5 11,23.5 11.5,26" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17.5,22 C 15.5,21.5 14,23 13.5,25" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="8" cy="10.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="16" cy="11.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="11.5" cy="16.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="6" cy="19.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="18" cy="20.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="12.5" cy="26.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          </svg>
+          <svg x="1596.5" y="32" width="24" height="55" viewBox="0 0 24 55">
+            <line x1="5" y1="52" x2="19" y2="52" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 9.5,52 C 10,46 10.5,39 10.5,33 L 8.5,27 C 9.5,27.5 10.5,29.5 11.5,31.5 L 12.5,31.5 C 13.5,29.5 14.5,27.5 15.5,27 L 13.5,33 C 13.5,39 14,46 14.5,52 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 12,4 C 15.5,4 18.5,6.5 19,10 C 21.5,11 23,14 22,17 C 23.5,20.5 22.5,25 19.5,28 C 19.5,32 16.5,35 13,35 C 10.5,35 8.5,33.5 7.5,31.5 C 5,32.5 2.5,30.5 2,27.5 C 0.8,24 1.5,20 3,17.5 C 1.8,14.5 3,11 5.5,9.5 C 6.5,6 9,4 12,4 Z" fill="#5E8F6B" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 7,13 C 9,11.5 11.5,12 12,14" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17,14 C 15.5,16.5 13.5,17 11.5,17" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 6.5,23 C 8.5,22.5 11,23.5 11.5,26" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17.5,22 C 15.5,21.5 14,23 13.5,25" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="8" cy="10.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="16" cy="11.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="11.5" cy="16.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="6" cy="19.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="18" cy="20.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="12.5" cy="26.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          </svg>
+          <svg x="2397" y="28" width="24" height="55" viewBox="0 0 24 55">
+            <line x1="5" y1="52" x2="19" y2="52" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M 9.5,52 C 10,46 10.5,39 10.5,33 L 8.5,27 C 9.5,27.5 10.5,29.5 11.5,31.5 L 12.5,31.5 C 13.5,29.5 14.5,27.5 15.5,27 L 13.5,33 C 13.5,39 14,46 14.5,52 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 12,4 C 15.5,4 18.5,6.5 19,10 C 21.5,11 23,14 22,17 C 23.5,20.5 22.5,25 19.5,28 C 19.5,32 16.5,35 13,35 C 10.5,35 8.5,33.5 7.5,31.5 C 5,32.5 2.5,30.5 2,27.5 C 0.8,24 1.5,20 3,17.5 C 1.8,14.5 3,11 5.5,9.5 C 6.5,6 9,4 12,4 Z" fill="#5E8F6B" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 7,13 C 9,11.5 11.5,12 12,14" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17,14 C 15.5,16.5 13.5,17 11.5,17" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 6.5,23 C 8.5,22.5 11,23.5 11.5,26" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M 17.5,22 C 15.5,21.5 14,23 13.5,25" fill="none" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="8" cy="10.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="16" cy="11.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="11.5" cy="16.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="6" cy="19.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="18" cy="20.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          <circle cx="12.5" cy="26.5" r="1.3" fill="#D94F40" stroke="#4F4036" stroke-width="0.8"/>
+          </svg>
+        </g>
+        <!-- the well, roughly the midpoint of the walk -->
+<svg x="1138" y="58" width="34" height="24" viewBox="0 0 34 24">
+          <line x1="5" y1="22" x2="29" y2="22" stroke="#4F4036" stroke-width="1.4" stroke-linecap="round"/>
+          <polygon points="8,22 9.5,14.5 24.5,14.5 26,22" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.4" stroke-linejoin="round"/>
+          <rect x="8.5" y="13" width="17" height="2" rx="0.5" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.3" stroke-linejoin="round"/>
+          <line x1="9.5" y1="18" x2="24.5" y2="18" stroke="#4F4036" stroke-width="1" stroke-linecap="round"/>
+          <line x1="14" y1="18" x2="14" y2="22" stroke="#4F4036" stroke-width="1" stroke-linecap="round"/>
+          <line x1="20" y1="15" x2="20" y2="18" stroke="#4F4036" stroke-width="1" stroke-linecap="round"/>
+          <rect x="11" y="7" width="2" height="7" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
+          <rect x="21" y="7" width="2" height="7" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
+          <line x1="12" y1="9" x2="22" y2="9" stroke="#4F4036" stroke-width="1.2" stroke-linecap="round"/>
+          <rect x="15.5" y="8" width="3" height="2" rx="0.4" fill="#E4B64A" stroke="#4F4036" stroke-width="1"/>
+          <line x1="17" y1="10" x2="17" y2="12.5" stroke="#4F4036" stroke-width="1"/>
+          <polygon points="15.5,12.5 18.5,12.5 18,15 16,15" fill="#8A6A4E" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <path d="M 17,2.5 Q 11,5.5 5.5,8 C 7.5,9 9.5,9 11.5,9 L 22.5,9 C 24.5,9 26.5,9 28.5,8 Q 23,5.5 17,2.5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <line x1="17" y1="3.5" x2="17" y2="8.5" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+          <circle cx="17" cy="2" r="0.9" fill="#E4B64A" stroke="#4F4036" stroke-width="1"/>
+        </svg>
+        </g>
+      </svg>
+    </div>
+
+    <!-- near ground: the path itself, meadow, fence, flowers -->
+    <div class="vlayer" id="vnear">
+      <svg viewBox="0 0 2600 120" width="2600" height="120" preserveAspectRatio="xMinYMax slice">
+        <!-- verge, then the path the reader is walking, then the near edge -->
+        <path fill="#4E7D5B" d="M0 29.2 C19.0 29.2 19.0 24.0 38.0 24.0 C57.0 24.0 57.0 23.5 76.0 23.5 C95.0 23.5 95.0 28.2 114.0 28.2 C133.0 28.2 133.0 34.5 152.0 34.5 C171.0 34.5 171.0 38.4 190.0 38.4 C209.0 38.4 209.0 38.5 228.0 38.5 C247.0 38.5 247.0 37.1 266.0 37.1 C285.0 37.1 285.0 37.9 304.0 37.9 C323.0 37.9 323.0 41.9 342.0 41.9 C361.0 41.9 361.0 46.6 380.0 46.6 C399.0 46.6 399.0 48.0 418.0 48.0 C437.0 48.0 437.0 44.1 456.0 44.1 C475.0 44.1 475.0 36.9 494.0 36.9 C513.0 36.9 513.0 30.9 532.0 30.9 C551.0 30.9 551.0 29.1 570.0 29.1 C589.0 29.1 589.0 30.8 608.0 30.8 C627.0 30.8 627.0 32.6 646.0 32.6 C665.0 32.6 665.0 31.5 684.0 31.5 C703.0 31.5 703.0 28.1 722.0 28.1 C741.0 28.1 741.0 26.2 760.0 26.2 C779.0 26.2 779.0 28.8 798.0 28.8 C817.0 28.8 817.0 35.6 836.0 35.6 C855.0 35.6 855.0 42.8 874.0 42.8 C893.0 42.8 893.0 46.3 912.0 46.3 C931.0 46.3 931.0 44.8 950.0 44.8 C969.0 44.8 969.0 41.2 988.0 41.2 C1007.0 41.2 1007.0 39.2 1026.0 39.2 C1045.0 39.2 1045.0 40.2 1064.0 40.2 C1083.0 40.2 1083.0 42.1 1102.0 42.1 C1121.0 42.1 1121.0 41.1 1140.0 41.1 C1159.0 41.1 1159.0 35.8 1178.0 35.8 C1197.0 35.8 1197.0 28.6 1216.0 28.6 C1235.0 28.6 1235.0 24.0 1254.0 24.0 C1273.0 24.0 1273.0 24.6 1292.0 24.6 C1311.0 24.6 1311.0 29.3 1330.0 29.3 C1349.0 29.3 1349.0 34.0 1368.0 34.0 C1387.0 34.0 1387.0 35.6 1406.0 35.6 C1425.0 35.6 1425.0 34.5 1444.0 34.5 C1463.0 34.5 1463.0 34.0 1482.0 34.0 C1501.0 34.0 1501.0 37.0 1520.0 37.0 C1539.0 37.0 1539.0 43.0 1558.0 43.0 C1577.0 43.0 1577.0 48.0 1596.0 48.0 C1615.0 48.0 1615.0 48.4 1634.0 48.4 C1653.0 48.4 1653.0 43.7 1672.0 43.7 C1691.0 43.7 1691.0 37.1 1710.0 37.1 C1729.0 37.1 1729.0 32.9 1748.0 32.9 C1767.0 32.9 1767.0 32.6 1786.0 32.6 C1805.0 32.6 1805.0 34.1 1824.0 34.1 C1843.0 34.1 1843.0 33.8 1862.0 33.8 C1881.0 33.8 1881.0 30.2 1900.0 30.2 C1919.0 30.2 1919.0 25.7 1938.0 25.7 C1957.0 25.7 1957.0 24.3 1976.0 24.3 C1995.0 24.3 1995.0 28.2 2014.0 28.2 C2033.0 28.2 2033.0 35.5 2052.0 35.5 C2071.0 35.5 2071.0 41.8 2090.0 41.8 C2109.0 41.8 2109.0 43.7 2128.0 43.7 C2147.0 43.7 2147.0 41.9 2166.0 41.9 C2185.0 41.9 2185.0 39.7 2204.0 39.7 C2223.0 39.7 2223.0 40.4 2242.0 40.4 C2261.0 40.4 2261.0 43.3 2280.0 43.3 C2299.0 43.3 2299.0 45.2 2318.0 45.2 C2337.0 45.2 2337.0 42.7 2356.0 42.7 C2375.0 42.7 2375.0 36.0 2394.0 36.0 C2413.0 36.0 2413.0 28.7 2432.0 28.7 C2451.0 28.7 2451.0 25.2 2470.0 25.2 C2489.0 25.2 2489.0 26.7 2508.0 26.7 C2527.0 26.7 2527.0 30.7 2546.0 30.7 C2565.0 30.7 2565.0 33.1 2584.0 33.1 C2603.0 33.1 2603.0 32.5 2622.0 32.5 L2600 120 L0 120 Z"/>
+        <path fill="#D8C7A8" d="M0 71.8 C19.0 71.8 19.0 68.6 38.0 68.6 C57.0 68.6 57.0 68.3 76.0 68.3 C95.0 68.3 95.0 71.2 114.0 71.2 C133.0 71.2 133.0 75.1 152.0 75.1 C171.0 75.1 171.0 77.5 190.0 77.5 C209.0 77.5 209.0 77.5 228.0 77.5 C247.0 77.5 247.0 76.7 266.0 76.7 C285.0 76.7 285.0 77.1 304.0 77.1 C323.0 77.1 323.0 79.6 342.0 79.6 C361.0 79.6 361.0 82.5 380.0 82.5 C399.0 82.5 399.0 83.4 418.0 83.4 C437.0 83.4 437.0 81.0 456.0 81.0 C475.0 81.0 475.0 76.6 494.0 76.6 C513.0 76.6 513.0 72.8 532.0 72.8 C551.0 72.8 551.0 71.7 570.0 71.7 C589.0 71.7 589.0 72.8 608.0 72.8 C627.0 72.8 627.0 73.9 646.0 73.9 C665.0 73.9 665.0 73.2 684.0 73.2 C703.0 73.2 703.0 71.2 722.0 71.2 C741.0 71.2 741.0 70.0 760.0 70.0 C779.0 70.0 779.0 71.5 798.0 71.5 C817.0 71.5 817.0 75.7 836.0 75.7 C855.0 75.7 855.0 80.2 874.0 80.2 C893.0 80.2 893.0 82.3 912.0 82.3 C931.0 82.3 931.0 81.4 950.0 81.4 C969.0 81.4 969.0 79.2 988.0 79.2 C1007.0 79.2 1007.0 77.9 1026.0 77.9 C1045.0 77.9 1045.0 78.6 1064.0 78.6 C1083.0 78.6 1083.0 79.8 1102.0 79.8 C1121.0 79.8 1121.0 79.2 1140.0 79.2 C1159.0 79.2 1159.0 75.9 1178.0 75.9 C1197.0 75.9 1197.0 71.5 1216.0 71.5 C1235.0 71.5 1235.0 68.6 1254.0 68.6 C1273.0 68.6 1273.0 69.0 1292.0 69.0 C1311.0 69.0 1311.0 71.9 1330.0 71.9 C1349.0 71.9 1349.0 74.8 1368.0 74.8 C1387.0 74.8 1387.0 75.8 1406.0 75.8 C1425.0 75.8 1425.0 75.1 1444.0 75.1 C1463.0 75.1 1463.0 74.8 1482.0 74.8 C1501.0 74.8 1501.0 76.6 1520.0 76.6 C1539.0 76.6 1539.0 80.3 1558.0 80.3 C1577.0 80.3 1577.0 83.4 1596.0 83.4 C1615.0 83.4 1615.0 83.7 1634.0 83.7 C1653.0 83.7 1653.0 80.7 1672.0 80.7 C1691.0 80.7 1691.0 76.7 1710.0 76.7 C1729.0 76.7 1729.0 74.1 1748.0 74.1 C1767.0 74.1 1767.0 73.9 1786.0 73.9 C1805.0 73.9 1805.0 74.8 1824.0 74.8 C1843.0 74.8 1843.0 74.6 1862.0 74.6 C1881.0 74.6 1881.0 72.4 1900.0 72.4 C1919.0 72.4 1919.0 69.6 1938.0 69.6 C1957.0 69.6 1957.0 68.8 1976.0 68.8 C1995.0 68.8 1995.0 71.2 2014.0 71.2 C2033.0 71.2 2033.0 75.7 2052.0 75.7 C2071.0 75.7 2071.0 79.5 2090.0 79.5 C2109.0 79.5 2109.0 80.7 2128.0 80.7 C2147.0 80.7 2147.0 79.6 2166.0 79.6 C2185.0 79.6 2185.0 78.3 2204.0 78.3 C2223.0 78.3 2223.0 78.7 2242.0 78.7 C2261.0 78.7 2261.0 80.5 2280.0 80.5 C2299.0 80.5 2299.0 81.7 2318.0 81.7 C2337.0 81.7 2337.0 80.1 2356.0 80.1 C2375.0 80.1 2375.0 76.0 2394.0 76.0 C2413.0 76.0 2413.0 71.5 2432.0 71.5 C2451.0 71.5 2451.0 69.4 2470.0 69.4 C2489.0 69.4 2489.0 70.3 2508.0 70.3 C2527.0 70.3 2527.0 72.7 2546.0 72.7 C2565.0 72.7 2565.0 74.2 2584.0 74.2 C2603.0 74.2 2603.0 73.8 2622.0 73.8 L2600 120 L0 120 Z"/>
+        <path fill="none" stroke="rgba(79,64,54,.14)" stroke-width="1.6" d="M0 71.8 C19.0 71.8 19.0 68.6 38.0 68.6 C57.0 68.6 57.0 68.3 76.0 68.3 C95.0 68.3 95.0 71.2 114.0 71.2 C133.0 71.2 133.0 75.1 152.0 75.1 C171.0 75.1 171.0 77.5 190.0 77.5 C209.0 77.5 209.0 77.5 228.0 77.5 C247.0 77.5 247.0 76.7 266.0 76.7 C285.0 76.7 285.0 77.1 304.0 77.1 C323.0 77.1 323.0 79.6 342.0 79.6 C361.0 79.6 361.0 82.5 380.0 82.5 C399.0 82.5 399.0 83.4 418.0 83.4 C437.0 83.4 437.0 81.0 456.0 81.0 C475.0 81.0 475.0 76.6 494.0 76.6 C513.0 76.6 513.0 72.8 532.0 72.8 C551.0 72.8 551.0 71.7 570.0 71.7 C589.0 71.7 589.0 72.8 608.0 72.8 C627.0 72.8 627.0 73.9 646.0 73.9 C665.0 73.9 665.0 73.2 684.0 73.2 C703.0 73.2 703.0 71.2 722.0 71.2 C741.0 71.2 741.0 70.0 760.0 70.0 C779.0 70.0 779.0 71.5 798.0 71.5 C817.0 71.5 817.0 75.7 836.0 75.7 C855.0 75.7 855.0 80.2 874.0 80.2 C893.0 80.2 893.0 82.3 912.0 82.3 C931.0 82.3 931.0 81.4 950.0 81.4 C969.0 81.4 969.0 79.2 988.0 79.2 C1007.0 79.2 1007.0 77.9 1026.0 77.9 C1045.0 77.9 1045.0 78.6 1064.0 78.6 C1083.0 78.6 1083.0 79.8 1102.0 79.8 C1121.0 79.8 1121.0 79.2 1140.0 79.2 C1159.0 79.2 1159.0 75.9 1178.0 75.9 C1197.0 75.9 1197.0 71.5 1216.0 71.5 C1235.0 71.5 1235.0 68.6 1254.0 68.6 C1273.0 68.6 1273.0 69.0 1292.0 69.0 C1311.0 69.0 1311.0 71.9 1330.0 71.9 C1349.0 71.9 1349.0 74.8 1368.0 74.8 C1387.0 74.8 1387.0 75.8 1406.0 75.8 C1425.0 75.8 1425.0 75.1 1444.0 75.1 C1463.0 75.1 1463.0 74.8 1482.0 74.8 C1501.0 74.8 1501.0 76.6 1520.0 76.6 C1539.0 76.6 1539.0 80.3 1558.0 80.3 C1577.0 80.3 1577.0 83.4 1596.0 83.4 C1615.0 83.4 1615.0 83.7 1634.0 83.7 C1653.0 83.7 1653.0 80.7 1672.0 80.7 C1691.0 80.7 1691.0 76.7 1710.0 76.7 C1729.0 76.7 1729.0 74.1 1748.0 74.1 C1767.0 74.1 1767.0 73.9 1786.0 73.9 C1805.0 73.9 1805.0 74.8 1824.0 74.8 C1843.0 74.8 1843.0 74.6 1862.0 74.6 C1881.0 74.6 1881.0 72.4 1900.0 72.4 C1919.0 72.4 1919.0 69.6 1938.0 69.6 C1957.0 69.6 1957.0 68.8 1976.0 68.8 C1995.0 68.8 1995.0 71.2 2014.0 71.2 C2033.0 71.2 2033.0 75.7 2052.0 75.7 C2071.0 75.7 2071.0 79.5 2090.0 79.5 C2109.0 79.5 2109.0 80.7 2128.0 80.7 C2147.0 80.7 2147.0 79.6 2166.0 79.6 C2185.0 79.6 2185.0 78.3 2204.0 78.3 C2223.0 78.3 2223.0 78.7 2242.0 78.7 C2261.0 78.7 2261.0 80.5 2280.0 80.5 C2299.0 80.5 2299.0 81.7 2318.0 81.7 C2337.0 81.7 2337.0 80.1 2356.0 80.1 C2375.0 80.1 2375.0 76.0 2394.0 76.0 C2413.0 76.0 2413.0 71.5 2432.0 71.5 C2451.0 71.5 2451.0 69.4 2470.0 69.4 C2489.0 69.4 2489.0 70.3 2508.0 70.3 C2527.0 70.3 2527.0 72.7 2546.0 72.7 C2565.0 72.7 2565.0 74.2 2584.0 74.2 C2603.0 74.2 2603.0 73.8 2622.0 73.8"/>
+        <!-- pebbles scattered along the path -->
+        <g fill="rgba(79,64,54,.13)">
+          <ellipse cx="260" cy="92" rx="4" ry="2.2"/><ellipse cx="640" cy="96" rx="3.4" ry="2"/>
+          <ellipse cx="1120" cy="90" rx="4.4" ry="2.4"/><ellipse cx="1560" cy="97" rx="3.6" ry="2"/>
+          <ellipse cx="2040" cy="91" rx="4.2" ry="2.3"/><ellipse cx="2460" cy="95" rx="3.5" ry="2"/>
+        </g>
+        <!-- white picket fence, straight off the brand book. Placed in stretches
+             further down the path so the opening frame is not cluttered, and
+             clear of where Ayi stands (x ~= 100 at the start of the walk). -->
+        <g id="fence" stroke="rgba(79,64,54,.36)" stroke-width="1.2" fill="#FFFCF7"></g>
+        <!-- meadow flecks: the little white flowers on the brand book grass -->
+        <g fill="#FFFCF7" opacity=".75">
+          <circle cx="80" cy="52" r="1.8"/><circle cx="300" cy="46" r="1.6"/><circle cx="470" cy="54" r="1.8"/>
+          <circle cx="700" cy="44" r="1.6"/><circle cx="880" cy="52" r="1.8"/><circle cx="1080" cy="46" r="1.6"/>
+          <circle cx="1300" cy="54" r="1.8"/><circle cx="1520" cy="44" r="1.6"/><circle cx="1740" cy="52" r="1.8"/>
+          <circle cx="1960" cy="46" r="1.6"/><circle cx="2180" cy="54" r="1.8"/><circle cx="2400" cy="46" r="1.6"/>
+        </g>
+        <!-- lantern field: the walk ends here, at dusk.
+             Gemini-generated lamppost lanterns (gemini-svg-prompts.md, prompt
+             7), 1.3x scale, post foot aligned to the same meadow band the
+             flowers above sit in. -->
+        <svg x="2314" y="13" width="26" height="41.6" viewBox="0 0 20 32">
+          <line x1="1.5" y1="30" x2="7.5" y2="30" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <rect x="3" y="4" width="2" height="26" rx="0.4" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M 4,4 L 13,3.5" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="4" y1="8" x2="8" y2="4" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="13" y1="3.5" x2="13" y2="7.5" stroke="#4F4036" stroke-width="1"/>
+          <ellipse cx="13" cy="14" rx="5.5" ry="5.5" fill="#E4B64A" stroke="#4F4036" stroke-width="1.3"/>
+          <path d="M 7.8,12.5 Q 13,13.5 18.2,12.5 L 18.2,15.5 Q 13,16.5 7.8,15.5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.1" stroke-linejoin="round"/>
+          <path d="M 13,8.5 Q 9.8,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <path d="M 13,8.5 Q 16.2,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <line x1="13" y1="8.5" x2="13" y2="19.5" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <rect x="10.5" y="7.5" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <rect x="10.5" y="19" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="13" cy="21.5" r="0.7" fill="#E4B64A" stroke="#4F4036" stroke-width="0.7"/>
+          <line x1="13" y1="21.5" x2="13" y2="26.5" stroke="#D94F40" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <svg x="2358" y="13" width="26" height="41.6" viewBox="0 0 20 32">
+          <line x1="1.5" y1="30" x2="7.5" y2="30" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <rect x="3" y="4" width="2" height="26" rx="0.4" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M 4,4 L 13,3.5" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="4" y1="8" x2="8" y2="4" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="13" y1="3.5" x2="13" y2="7.5" stroke="#4F4036" stroke-width="1"/>
+          <ellipse cx="13" cy="14" rx="5.5" ry="5.5" fill="#E4B64A" stroke="#4F4036" stroke-width="1.3"/>
+          <path d="M 7.8,12.5 Q 13,13.5 18.2,12.5 L 18.2,15.5 Q 13,16.5 7.8,15.5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.1" stroke-linejoin="round"/>
+          <path d="M 13,8.5 Q 9.8,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <path d="M 13,8.5 Q 16.2,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <line x1="13" y1="8.5" x2="13" y2="19.5" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <rect x="10.5" y="7.5" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <rect x="10.5" y="19" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="13" cy="21.5" r="0.7" fill="#E4B64A" stroke="#4F4036" stroke-width="0.7"/>
+          <line x1="13" y1="21.5" x2="13" y2="26.5" stroke="#D94F40" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <svg x="2402" y="13" width="26" height="41.6" viewBox="0 0 20 32">
+          <line x1="1.5" y1="30" x2="7.5" y2="30" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <rect x="3" y="4" width="2" height="26" rx="0.4" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M 4,4 L 13,3.5" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="4" y1="8" x2="8" y2="4" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="13" y1="3.5" x2="13" y2="7.5" stroke="#4F4036" stroke-width="1"/>
+          <ellipse cx="13" cy="14" rx="5.5" ry="5.5" fill="#E4B64A" stroke="#4F4036" stroke-width="1.3"/>
+          <path d="M 7.8,12.5 Q 13,13.5 18.2,12.5 L 18.2,15.5 Q 13,16.5 7.8,15.5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.1" stroke-linejoin="round"/>
+          <path d="M 13,8.5 Q 9.8,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <path d="M 13,8.5 Q 16.2,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <line x1="13" y1="8.5" x2="13" y2="19.5" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <rect x="10.5" y="7.5" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <rect x="10.5" y="19" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="13" cy="21.5" r="0.7" fill="#E4B64A" stroke="#4F4036" stroke-width="0.7"/>
+          <line x1="13" y1="21.5" x2="13" y2="26.5" stroke="#D94F40" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <svg x="2446" y="13" width="26" height="41.6" viewBox="0 0 20 32">
+          <line x1="1.5" y1="30" x2="7.5" y2="30" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <rect x="3" y="4" width="2" height="26" rx="0.4" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M 4,4 L 13,3.5" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="4" y1="8" x2="8" y2="4" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="13" y1="3.5" x2="13" y2="7.5" stroke="#4F4036" stroke-width="1"/>
+          <ellipse cx="13" cy="14" rx="5.5" ry="5.5" fill="#E4B64A" stroke="#4F4036" stroke-width="1.3"/>
+          <path d="M 7.8,12.5 Q 13,13.5 18.2,12.5 L 18.2,15.5 Q 13,16.5 7.8,15.5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.1" stroke-linejoin="round"/>
+          <path d="M 13,8.5 Q 9.8,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <path d="M 13,8.5 Q 16.2,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <line x1="13" y1="8.5" x2="13" y2="19.5" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <rect x="10.5" y="7.5" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <rect x="10.5" y="19" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="13" cy="21.5" r="0.7" fill="#E4B64A" stroke="#4F4036" stroke-width="0.7"/>
+          <line x1="13" y1="21.5" x2="13" y2="26.5" stroke="#D94F40" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <svg x="2490" y="13" width="26" height="41.6" viewBox="0 0 20 32">
+          <line x1="1.5" y1="30" x2="7.5" y2="30" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <rect x="3" y="4" width="2" height="26" rx="0.4" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M 4,4 L 13,3.5" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="4" y1="8" x2="8" y2="4" stroke="#4F4036" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="13" y1="3.5" x2="13" y2="7.5" stroke="#4F4036" stroke-width="1"/>
+          <ellipse cx="13" cy="14" rx="5.5" ry="5.5" fill="#E4B64A" stroke="#4F4036" stroke-width="1.3"/>
+          <path d="M 7.8,12.5 Q 13,13.5 18.2,12.5 L 18.2,15.5 Q 13,16.5 7.8,15.5 Z" fill="#D94F40" stroke="#4F4036" stroke-width="1.1" stroke-linejoin="round"/>
+          <path d="M 13,8.5 Q 9.8,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <path d="M 13,8.5 Q 16.2,14 13,19.5" fill="none" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <line x1="13" y1="8.5" x2="13" y2="19.5" stroke="#4F4036" stroke-width="0.9" stroke-linecap="round"/>
+          <rect x="10.5" y="7.5" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <rect x="10.5" y="19" width="5" height="1.5" rx="0.4" fill="#D94F40" stroke="#4F4036" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="13" cy="21.5" r="0.7" fill="#E4B64A" stroke="#4F4036" stroke-width="0.7"/>
+          <line x1="13" y1="21.5" x2="13" y2="26.5" stroke="#D94F40" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </svg>
+    </div>
+
+    <div id="prints"></div>
+
+    <!-- Ayi, the RecWeek mascot, walking ahead of the reader. This is the
+         real RecWeek artwork ("ayi with string.png" from the Drive asset
+         folder), not a redrawn or AI-reinterpreted version of it -- trimmed
+         to its bounding box, downscaled to 260x380 (2-3x the ~90-130px this
+         ever renders at), and re-encoded as WebP. Source is 4093x2894 /
+         2.35MB; this copy is 21KB, inlined
+         as a data URI so it works for every reader regardless of Drive
+         sharing (the asset folder is shared to ateneo-celadon.org only,
+         readers open this as @student.ateneo.edu -- see the note on the
+         panorama layers above) and costs no extra request. -->
+    <div id="walker">
+<img src="assets/walker.webp" alt="" aria-hidden="true">
+    </div>
+  </div>
+  <svg id="lantern" width="26" height="42" viewBox="0 0 30 46" aria-hidden="true">
+    <line x1="15" y1="0" x2="15" y2="9" stroke="rgba(79,64,54,.7)" stroke-width="1.5"/>
+    <rect x="9" y="8" width="12" height="4" rx="1.5" fill="#E4B64A" stroke="rgba(79,64,54,.7)" stroke-width="1.3"/>
+    <path d="M8 13 C6 20 6 30 8 37 C10 41 20 41 22 37 C24 30 24 20 22 13 Z" fill="#D94F40" stroke="rgba(79,64,54,.7)" stroke-width="1.5"/>
+    <line x1="8" y1="20" x2="22" y2="20" stroke="rgba(79,64,54,.7)" stroke-width="1" opacity=".5"/>
+    <line x1="8" y1="30" x2="22" y2="30" stroke="rgba(79,64,54,.7)" stroke-width="1" opacity=".5"/>
+    <rect x="12" y="37" width="6" height="3" rx="1" fill="#E4B64A" stroke="rgba(79,64,54,.7)" stroke-width="1"/>
+    <line x1="15" y1="40" x2="15" y2="46" stroke="rgba(79,64,54,.7)" stroke-width="1.3"/>
+  </svg>
+  <div id="bars"></div>
+  <div id="slides"></div>
+  <div id="hint">tap to continue &middot; hold to pause</div>
+  <!-- Everything above is already fully data-driven the instant this HTML
+       arrives (doGet blocked on the Sheets read before it ever sent the
+       page), so there's no fetch left to mask -- what needed covering was
+       the raw "click a link, blank Google frame, wall of content snaps in"
+       feel. This holds for a deliberate minimum instead. -->
+  <div id="loader" role="status" aria-live="polite">
+    <div class="ldr-sky"></div>
+    <div class="ldr-content">
+      <div class="ldr-cloud c1"></div>
+      <div class="ldr-cloud c2"></div>
+      <div class="ldr-cloud c3"></div>
+      <img class="ldr-walker" alt="" aria-hidden="true">
+      <div class="ldr-prints" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <p class="ldr-title">Preparing your journey<span class="ldr-dots" aria-hidden="true"><i></i><i></i><i></i></span></p>
+      <div class="ldr-bar" aria-hidden="true"><i></i></div>
+    </div>
+    <!-- The descent: these puffs start already filling most of the frame
+         (varied bottom offsets, not just a thin band at the edge) so the
+         moment .done lands it reads as "inside a cloud bank", not "a few
+         clouds down by the floor". They then all stream upward and off
+         together, parting to the ground scene already settled behind (show(0)
+         runs the moment this begins) -- breaking through the cloud layer
+         onto it, rather than a screen being wiped away. -->
+    <div class="ldr-rush" aria-hidden="true">
+      <i style="left:2%;bottom:-6%;width:96px;height:36px;animation-delay:.00s"></i>
+      <i style="left:16%;bottom:-32%;width:140px;height:50px;animation-delay:.05s"></i>
+      <i style="left:33%;bottom:-58%;width:74px;height:28px;animation-delay:.10s"></i>
+      <i style="left:46%;bottom:-16%;width:160px;height:56px;animation-delay:.02s"></i>
+      <i style="left:62%;bottom:-46%;width:100px;height:38px;animation-delay:.14s"></i>
+      <i style="left:76%;bottom:-72%;width:128px;height:46px;animation-delay:.07s"></i>
+      <i style="left:90%;bottom:-26%;width:86px;height:32px;animation-delay:.11s"></i>
+      <i style="left:9%;bottom:-62%;width:64px;height:24px;animation-delay:.19s"></i>
+      <i style="left:57%;bottom:-82%;width:70px;height:26px;animation-delay:.16s"></i>
+      <i style="left:24%;bottom:-9%;width:110px;height:40px;animation-delay:.04s"></i>
+      <i style="left:70%;bottom:-5%;width:90px;height:34px;animation-delay:.09s"></i>
+      <i style="left:40%;bottom:-40%;width:80px;height:30px;animation-delay:.21s"></i>
+    </div>
+  </div>
+  <!-- A real <dialog>, opened with showModal() (share.js) -- top-layer,
+       Esc-to-close and focus-trapping come free from the element itself.
+       ::backdrop + .sheet are the frosted-parchment treatment (styles.css). -->
+  <dialog id="sharewrap">
+    <div class="sheet">
+      <img id="shareimg" alt="Your Celaville Wrapped card">
+      <p class="hint" id="sharehint">Press and hold the image to save it, or use Share below.</p>
+      <div class="srow">
+        <button type="button" class="sbtn" id="sharenative" hidden onclick="event.stopPropagation()">Share</button>
+        <a class="sbtn ghost" id="sharedl" download="celaville-wrapped.png">Download</a>
+      </div>
+      <div class="srow" style="margin-top:9px">
+        <span class="sbtn ghost" id="shareclose" role="button" tabindex="0">Close</span>
+      </div>
+    </div>
+  </dialog>
+</div></div>
+
+
+
+<script src="assets/api.js"></script>
+<script src="assets/slides.js"></script>
+<script src="assets/share.js"></script>
+<script src="assets/app.js"></script>
+<script>
+// Cache-first shell + offline second-open (sw.js). Registered from here,
+// not app.js, so it stays out of the fetch-payload critical path entirely.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

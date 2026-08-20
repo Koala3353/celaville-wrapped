@@ -1,0 +1,14 @@
+{
+  "name": "Celaville Wrapped",
+  "short_name": "Wrapped",
+  "description": "Your RecWeek 2026-2027 Celaville Wrapped -- the parts of your sign-up that were only yours.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FFFCF7",
+  "theme_color": "#BFE0F3",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

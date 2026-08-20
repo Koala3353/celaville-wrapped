@@ -1,0 +1,1112 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   CELAVILLE -- "Organic Storybook" design system
+   Hand-painted ink + watercolor on parchment. No flat rectangles, no glass,
+   no hard drop-shadows, no emoji, no icon-library glyphs on themed surfaces.
+   See the design-system brief for the full spec; this file implements it.
+
+   Ported from Wrapped.html (Apps Script HtmlService) to a static GitHub
+   Pages site. Self-hosted webfonts replace the fonts.googleapis.com <link>
+   (each of these is the actual variable-font file Google serves for every
+   weight in its family, so one file each covers 400-900 / 400-700).
+   ───────────────────────────────────────────────────────────────────────── */
+@font-face{
+  font-family:'Bevan';font-style:normal;font-weight:400;font-display:swap;
+  src:url('fonts/bevan-400.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Grandstander';font-style:normal;font-weight:400 900;font-display:swap;
+  src:url('fonts/grandstander-variable.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Montserrat';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url('fonts/montserrat-variable.woff2') format('woff2');
+}
+/* Registered custom property: lets the donut's conic-gradient stop actually
+   transition/animate instead of snapping, so the ring can sweep in sync with
+   the countUp digits (app.js drives --p via a rAF loop keyed to the same
+   duration as countUp uses). Guarded with @supports at the point of use is
+   unnecessary -- an engine that ignores @property just keeps the old
+   snap-to-value behavior, which is exactly the pre-existing fallback. */
+@property --p{
+  syntax:'<number>';
+  inherits:false;
+  initial-value:0;
+}
+:root{
+  /* ── Official RecWeek 2026-2027 Celaville palette (brand book p.10) ──────
+     Exact hexes from the brand book. Anything not in that book is derived
+     from it below, never invented. */
+  --coral:#D94F40;   /* brand red -- primary CTA, hero accents, data emphasis */
+  --leaf:#5E8F6B;    /* brand green -- village hills, secondary button */
+  --sky:#9FD0EB;     /* brand sky blue -- clouds and sky, FILLS ONLY */
+  --yellow:#E4B64A;  /* brand yellow -- lanterns, roof trim, golden hour */
+  --sage:#A8C59A;    /* brand sage -- far hills, receding depth */
+  --peach:#F3BF8D;   /* brand peach -- dusk light, warm washes */
+  --ink:#4F4036;     /* brand dark brown -- headings and body (9.68:1 on paper) */
+  --paper:#FFFCF7;   /* brand cream -- card/panel parchment */
+
+  /* Accessible text variants. Every brand hue except the ink brown fails WCAG
+     AA as small text on the cream paper -- measured, not estimated:
+       coral 3.99:1 · leaf 3.65:1 · yellow 1.85:1 · sky 1.62:1 · sage 1.85:1
+     So the rule is: fills and large display type use the brand hue; anything
+     small and textual uses the -text variant. These are the brand hues
+     darkened only as far as 4.5:1 requires, so the hue still reads as itself. */
+  --coral-text:#C9493B;  /* 4.56:1 on paper */
+  --leaf-text:#527D5E;   /* 4.61:1 on paper */
+  --sky-text:#5C7888;    /* 4.56:1 on paper */
+  --yellow-text:#8D702D; /* 4.57:1 on paper */
+  /* White-on-colour for filled buttons: the plain brand hues only reach
+     4.08:1 (coral) and 3.74:1 (leaf) behind white text. */
+  --coral-onwhite:#CB4A3C; /* white on this = 4.58:1 */
+  --leaf-onwhite:#548060;  /* white on this = 4.53:1 */
+
+  --page-bg:#F6EFE2; /* page background behind the frame */
+  --border-light:#EDE4D4; /* dashed stitches, soft frame borders */
+  --muted:#6B5D51;   /* secondary/caption copy -- 5.6:1 on paper */
+  --ink-soft:rgba(79,64,54,.34);
+  --ink-strong:rgba(79,64,54,.72);
+  --ease:cubic-bezier(.22,1,.36,1);
+
+  /* ── time of day ────────────────────────────────────────────────────────
+     The walk through Celaville runs morning -> noon -> golden -> dusk, one
+     step per act. JS sets --tod-* on #frame; every sky and light wash reads
+     from these so the whole village warms as the story goes on. */
+  --tod-top:#BFE0F3;
+  --tod-bot:#FFFCF7;
+  --tod-warm:rgba(228,182,74,0);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--page-bg);}
+body{
+  font-family:'Montserrat',system-ui,-apple-system,sans-serif;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior:none;
+}
+
+/* ── stage ───────────────────────────────────────────────── */
+/* On the old Apps Script HtmlService page, height came from a JS-measured
+   --vh custom property because 100dvh there resolved against the sandbox
+   iframe, not the phone screen. On this static origin the browser owns the
+   viewport directly, so plain 100dvh is correct and fitHeight()/--vh are
+   gone entirely -- mobile URL-bar collapse is the browser's problem now,
+   and the village no longer jumps by a bar's height on first scroll. */
+#stage{
+  position:fixed;left:0;top:0;right:0;
+  height:100dvh;
+  display:flex;align-items:center;justify-content:center;
+}
+#frame{
+  position:relative;width:100%;height:100%;max-width:520px;max-height:100dvh;
+  background:linear-gradient(160deg,#ffffff 0%,var(--paper) 100%);
+  overflow:hidden;
+  box-shadow:0 16px 36px rgba(61,50,42,.14);
+  /* the frame, not the viewport, is what slides have to fit inside */
+  container-type:size;container-name:fr;
+}
+@media(min-width:560px){#frame{height:min(100dvh,880px);border-radius:60px 16px 54px 16px/16px 54px 16px 60px;border:3px solid var(--ink-strong);}}
+
+/* ── the hand-drawn roughness filter ─────────────────────────────────────
+   The core "ink stroke" technique: fractal noise displaces a shape's edges
+   so straight lines read as drawn, not machined. Applied ONLY to decorative
+   ::before/::after border overlays that own no real children -- never to an
+   element that is an ancestor of the staggered .inner > * reveal animation,
+   which is a known iOS Safari bug source (an SVG filter on an animated
+   subtree's ancestor can stall the animation entirely). */
+/* ── watercolor decorations ──────────────────────────────────────────────
+   Minimal, per the brief: soft blurred cloud tints at the page corners, and
+   one hand-drawn hanging lantern anchored to the frame chrome (not redrawn
+   per-slide -- that would be "busy," not "storybook"). */
+.cloud{position:absolute;border-radius:50%;filter:blur(18px);pointer-events:none;z-index:1}
+#lantern{position:absolute;top:26px;right:16px;z-index:6;transform-origin:top center;
+  animation:lantern-sway 4.5s ease-in-out infinite alternate}
+@keyframes lantern-sway{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+
+/* ── progress bars ───────────────────────────────────────── */
+/* The filled segment is the one place the brief explicitly names "active
+   underline" as coral's job, so this is the one progress-style element that
+   keeps a flat fill rather than a watercolor wash. */
+/* Progress is the path underfoot: each slide is one stepping stone, and the
+   stones you have crossed stay filled. Same affordance every story format has
+   trained people to read, drawn as part of the village instead of as a UI bar. */
+#bars{
+  position:absolute;top:0;left:0;right:0;z-index:20;display:flex;gap:5px;
+  padding:calc(12px + env(safe-area-inset-top)) 12px 0;
+  view-transition-name:progress-bars;
+}
+#bars::before{
+  content:'';position:absolute;left:12px;right:12px;top:14.5px;height:0;
+  border-top:2px dotted rgba(79,64,54,.16);
+}
+.bar{
+  flex:1;height:6px;position:relative;overflow:hidden;
+  background:rgba(255,252,247,.72);
+  border:1px solid rgba(79,64,54,.22);
+  /* asymmetric radii so each stone reads as a pebble, not a pill */
+  border-radius:5px 3px 4px 3px/3px 4px 3px 5px;
+}
+.bar > i{display:block;height:100%;width:0;background:var(--coral);border-radius:inherit}
+.bar.done > i{width:100%}
+.bar.active > i{animation:fill linear forwards;animation-duration:var(--dur,7s)}
+@keyframes fill{to{width:100%}}
+body.paused .bar.active > i{animation-play-state:paused}
+
+/* ── the village ──────────────────────────────────────────────────────────
+   The whole story is one walk through Celaville, so the backdrop is a single
+   painted panorama that pans as the reader advances rather than a texture that
+   loops. Because the walk is finite (24 slides at most) the panorama can be
+   authored end to end: the reader genuinely passes the schoolhouse, the well,
+   the mahjong pavilion and finishes at the lantern field.
+
+   Four depth layers pan at different rates (0.20 / 0.45 / 0.75 / 1.00), which
+   is what reads as distance. Every layer is inline SVG -- the Drive artwork is
+   print-resolution (single files up to 10MB) and shared only inside
+   ateneo-celadon.org, so hotlinking it would break for @student.ateneo.edu
+   readers and blow the mobile data budget for 800 of them. */
+#village{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;view-transition-name:village}
+#vsky{
+  position:absolute;inset:0;
+  background:linear-gradient(var(--tod-top) 0%, var(--tod-bot) 70%);
+  transition:background 1.6s var(--ease);
+}
+/* Golden-hour / dusk warmth. A separate layer so only its opacity animates. */
+/* Golden hour / dusk warmth. Deliberately confined to the bottom of the frame
+   and faded to nothing going up: an earlier version covered the whole frame and
+   tinted the text area tan, which quietly wrecked contrast on every slide whose
+   copy sits directly on the sky rather than inside a card. */
+#vwarm{
+  position:absolute;left:0;right:0;bottom:0;height:52%;
+  background:linear-gradient(180deg,rgba(243,191,141,0) 0%,rgba(243,191,141,.34) 46%,rgba(217,79,64,.20) 100%);
+  opacity:var(--warm,0);transition:opacity 1.6s var(--ease);
+}
+.vlayer{position:absolute;left:0;right:0;bottom:0;overflow:hidden}
+.vlayer > svg{
+  position:absolute;left:0;bottom:0;height:100%;width:auto;
+  transform:translate3d(var(--pan,0px),0,0);
+  transition:transform 1.15s cubic-bezier(.33,.9,.24,1);
+  will-change:transform;
+}
+/* Root cause of both the floating-mound and top-cropping bugs: every layer
+   still carried an explicit width="2600" HTML attribute (matching its own
+   viewBox width exactly). With height:100% forcing the CSS height and that
+   attribute pinning the width, the browser scaled by WIDTH (already a 1:1
+   match) instead of by height -- leaving each layer's real height (up to
+   660 units for the tallest, vclouds) to get center- or bottom-cropped down
+   to whatever the container's actual pixel height happened to be. On a
+   612px-tall vclouds div that silently discarded content above local y~143,
+   which is exactly where every cloud and kite anchor sat -- they weren't
+   misplaced, they were being cropped by a mechanism with nothing to do with
+   their own coordinates. `width:auto` here removes the conflicting
+   attribute's influence: the browser now derives width purely from
+   height:100% and the viewBox aspect ratio, so height always fills the
+   container exactly and nothing above y=0 of any layer is ever clipped,
+   regardless of device height. */
+#vclouds{top:0;bottom:auto;height:46%}
+#vfar{height:25%}
+#vmid{height:20.5%}
+#vnear{height:13%}
+
+/* Ayi walks the path. Anchored to the near layer's ground line, bobbing in
+   place -- the village moves past her, which is cheaper and reads better than
+   translating a character across a panning background.
+   Sized by HEIGHT rather than width: the real artwork is taller than it is
+   wide (260x380, ~0.68 aspect), unlike the placeholder's ~0.9 square-ish
+   viewBox, so fixing width would have made her nearly 80px tall and pushed
+   into the copy above -- the same collision the hint text had earlier. */
+#walker{
+  position:absolute;left:23%;bottom:2.4%;height:62px;width:auto;z-index:2;
+  pointer-events:none;transform-origin:50% 100%;
+  animation:walkbob 1.05s ease-in-out infinite;
+}
+#walker img{display:block;height:100%;width:auto;pointer-events:none;user-select:none;transform:scaleX(-1)}
+/* Flipped: the art faces the reader's left, but the panorama pans -x
+   (background moves left under her feet), which reads as HER moving right
+   -- so she needs to face right to walk "into" the direction of travel. */
+@keyframes walkbob{
+  0%,100%{transform:translateY(0) rotate(-1.2deg)}
+  50%{transform:translateY(-3.5px) rotate(1.2deg)}
+}
+body.paused #walker{animation-play-state:paused}
+#walker.arrived{animation-play-state:paused}
+
+/* Footprints trailing behind her, one per slide already walked. */
+#prints{position:absolute;left:0;right:0;bottom:2.0%;height:12px;z-index:1;pointer-events:none}
+#prints i{
+  position:absolute;bottom:0;width:5px;height:7px;border-radius:60% 60% 45% 45%;
+  background:rgba(79,64,54,.20);
+  transform:rotate(var(--r,0deg));
+  animation:printin .5s var(--ease) both;
+}
+@keyframes printin{from{opacity:0;transform:rotate(var(--r,0deg)) scale(.4)}to{opacity:1}}
+
+/* The card floats over the sky with the hills behind it, exactly like the
+   brand book pages: cream/blue above, rolling green along the bottom. */
+@media (prefers-reduced-motion: reduce){
+  .vlayer > svg{transition:none}
+  #walker{animation:none}
+  #prints i{animation:none}
+  #vsky,#vwarm{transition:none}
+}
+
+/* ── slides ──────────────────────────────────────────────── */
+/* Slides scroll internally rather than clipping. A flex-centred box with
+   overflow cuts off the TOP of tall content in every browser, so the scroller
+   is the .slide and the centring happens on .inner via min-height + auto
+   margins -- content shorter than the screen sits centred, taller content
+   starts at the top and scrolls. */
+.slide{
+  position:absolute;inset:0;z-index:2;display:none;
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.slide.on{display:block}
+/* A slide left transparent lets the village show through everywhere behind
+   it, which is the whole point for an ordinary, single-screen slide -- the
+   story floats over the walk. But #village is fixed to the FRAME's on-screen
+   position, not to the slide's own scroll offset. A slide long enough to
+   scroll (a full platform ladder plus its bar chart, say) can push its own
+   lower content -- bar labels, a closing paragraph -- down into the same
+   physical screen band the ground/fence/pavilion always occupy, and since
+   neither one moves out of the other's way, they render on top of each
+   other. Solid background here removes the conflict outright: a slide that
+   scrolls gets a plain readable page: the village stays for every slide
+   that doesn't need to. Applied by JS in applyScrollState(), not by a CSS
+   height query, since "does this content overflow" isn't something CSS
+   alone can answer. */
+.slide.scroll-locked{background:linear-gradient(160deg,#ffffff 0%,var(--paper) 100%)}
+.slide::-webkit-scrollbar{width:0;display:none}
+.inner{
+  min-height:100%;display:flex;flex-direction:column;justify-content:center;
+  padding:68px 24px 86px;position:relative;z-index:2;
+}
+@media(min-width:420px){.inner{padding:74px 30px 92px}}
+
+/* Motion rule: enter/exit is transform+opacity only, on the standard ease,
+   380-550ms. No filter is ever applied to .inner or .slide, so this stagger
+   can never collide with the ink-edge filter on a card's own ::before.
+
+   The entrance rule is split on a .settled flag, added by JS once each
+   child's "rise" animation finishes: a completed "forwards"-fill animation
+   pins its animated properties (here, transform) indefinitely, silently
+   overriding any later change to that property -- including inline styles
+   and :active rules -- until the animation is removed. Left unsplit, .btn's
+   own :active{transform:scale(.96)} press feedback would never render
+   (verified directly: getComputedStyle stayed locked at the identity matrix
+   long after the animation had finished). Settled elements fall through to
+   a plain, non-animated resting rule instead, so transform is free again. */
+.slide.on .inner > *:not(.settled){opacity:0;transform:translateY(18px);animation:rise .48s var(--ease) forwards}
+.slide.on .inner > *.settled{opacity:1;transform:none}
+.slide.on .inner > *:nth-child(1){animation-delay:.03s}
+.slide.on .inner > *:nth-child(2){animation-delay:.11s}
+.slide.on .inner > *:nth-child(3){animation-delay:.19s}
+.slide.on .inner > *:nth-child(4){animation-delay:.27s}
+.slide.on .inner > *:nth-child(5){animation-delay:.35s}
+.slide.on .inner > *:nth-child(6){animation-delay:.43s}
+.slide.on .inner > *:nth-child(7){animation-delay:.51s}
+.slide.on .inner > *:nth-child(n+8){animation-delay:.58s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ── type ────────────────────────────────────────────────── */
+.kicker{
+  font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;
+  color:var(--coral-text);margin:0 0 14px;font-family:'Montserrat';
+}
+.kicker .cn{font-family:'Kaiti SC','STKaiti','KaiTi','楷体',serif;letter-spacing:.06em;color:var(--leaf);font-size:1.15em}
+h1{font-family:'Bevan',Georgia,serif;font-weight:400;font-size:clamp(38px,11vw,52px);font-size:clamp(38px,11cqw,52px);line-height:1.02;margin:0 0 14px;color:var(--ink)}
+h2{font-family:'Grandstander';font-size:clamp(25px,7vw,36px);font-size:clamp(25px,7cqw,36px);line-height:1.16;font-weight:800;margin:0 0 14px;letter-spacing:-.01em;color:var(--ink)}
+h3{font-family:'Grandstander';font-size:19px;font-weight:800;margin:0 0 8px;color:var(--ink)}
+/* 17px body: comfortably above the 16px floor where mobile Safari auto-zooms,
+   and the line-height/measure below keep it to ~34 characters a line. */
+p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
+.sm{font-size:15px;color:var(--muted);line-height:1.55}
+.hl{color:var(--coral-text);font-weight:700}
+.hl-g{color:var(--leaf);font-weight:700}
+.big{
+  font-family:'Bevan',Georgia,serif;font-size:clamp(64px,22vw,112px);font-size:clamp(64px,22cqw,112px);line-height:.9;
+  color:var(--coral);margin:0;letter-spacing:-.02em;
+}
+.big.sm-num{font-size:clamp(46px,15vw,78px);font-size:clamp(46px,15cqw,78px)}
+.unit{font-family:'Grandstander';font-size:.38em;font-weight:800;vertical-align:super;margin-left:2px;color:var(--coral)}
+
+/* ── components ──────────────────────────────────────────── */
+/* Cards: wobbly asymmetric radius, parchment gradient, soft diffuse shadow
+   (never a hard offset drop-shadow). The ink border is a separate ::before
+   overlay carrying the roughness filter -- see the note on .ink-edge above. */
+.card{
+  position:relative;background:linear-gradient(160deg,#ffffff,var(--paper));
+  border-radius:60px 12px 52px 12px/12px 52px 12px 60px;
+  padding:16px 18px;margin-bottom:12px;
+  box-shadow:0 10px 22px rgba(61,50,42,.08);
+}
+.card::before{content:'';position:absolute;inset:0;pointer-events:none;filter:url(#rough-edge);
+  border:2.5px solid var(--ink-strong);
+  border-radius:60px 12px 52px 12px/12px 52px 12px 60px;}
+.card::after{content:'';position:absolute;inset:6px;pointer-events:none;
+  border:1px dashed var(--border-light);border-radius:52px 10px 46px 10px/10px 46px 10px 52px;}
+.card.g{background:linear-gradient(160deg,#ffffff,#EEF5EC)}
+.card.g::before{border-color:rgba(94,143,107,.55)}
+.card.b{background:linear-gradient(160deg,#ffffff,#EAF2FB)}
+.card.b::before{border-color:rgba(159,208,235,.55)}
+.row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.row + .row{margin-top:9px}
+.rowlabel{font-size:16px;font-weight:600;flex:1;line-height:1.35}
+/* No white-space:nowrap: a rowval is usually short enough to sit on one line
+   on its own, but "89 words · Chinese-Filipino culture" (a real production
+   string -- interview word count + theme label, not a hypothetical) is long
+   enough to push past the card edge if wrapping isn't allowed. Letting it
+   wrap costs nothing for the common short case and fixes the rare long one. */
+.rowval{font-size:15px;font-weight:800;color:var(--coral-text)}
+
+.meter{height:9px;border-radius:99px;background:rgba(79,64,54,.12);overflow:hidden;margin-top:7px}
+.meter > i{display:block;height:100%;width:0;border-radius:99px;background:var(--leaf);transition:width 1.1s var(--ease) .25s}
+.slide.on .meter > i{width:var(--w)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+.chip{
+  position:relative;font-size:14.5px;font-weight:600;padding:8px 14px;border-radius:99px;
+  border:1.5px solid var(--ink-soft);background:var(--paper);line-height:1.3;color:var(--ink);
+}
+.chip.coral{background:rgba(217,79,64,.14)}
+.chip.leaf{background:rgba(94,143,107,.14)}
+.chip.sky{background:rgba(159,208,235,.16)}
+.chip.paper{background:var(--paper)}
+
+.quote{
+  font-family:'Montserrat';font-style:italic;font-size:17.5px;line-height:1.7;color:var(--ink);
+  border-left:3px solid var(--coral);padding:4px 0 4px 16px;margin:0 0 16px;
+}
+
+/* dept/project photo link -- a secondary text link, not a full button, so it
+   doesn't compete with the primary CTA on the recap slide */
+.photolink{
+  display:inline-block;font-family:'Montserrat';font-size:14px;font-weight:700;
+  color:var(--leaf);text-decoration:none;border-bottom:1.5px dashed var(--leaf);
+  padding-bottom:1px;
+}
+
+/* ── charts ───────────────────────────────────────────────────────────────
+   Hand-drawn data display. Every chart is CSS/flex only (no SVG plotting, no
+   chart library) so it reflows with the frame instead of scaling a fixed
+   canvas, and every bar is a wobbly ink-outlined track rather than a flat
+   rectangle. Sizes use cqw/px, never vw, so a chart drawn inside the 520px
+   card on desktop is proportioned exactly like one on a 360px phone.
+
+   Bars grow from 0 on slide entry via the same .on trigger the text stagger
+   uses -- width is a transition (not an animation) so a finished bar leaves
+   no forwards-filled animation pinning its width. */
+
+/* Labelled horizontal bar row: label above, value right-aligned, bar below.
+   Stacking the label above the bar (rather than beside it) is what keeps
+   long option text like "Want to be part of a specific project" readable at
+   360px -- a side-by-side layout squeezes the bar to nothing. */
+.chart{margin:2px 0 14px}
+.chart-row{margin-bottom:11px}
+.chart-row:last-child{margin-bottom:0}
+.chart-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:5px}
+.chart-label{font-size:14.5px;font-weight:600;line-height:1.3;min-width:0;overflow-wrap:break-word}
+.chart-val{font-size:13.5px;font-weight:800;color:var(--coral-text);white-space:nowrap;flex:none}
+.chart-track{
+  position:relative;height:13px;border-radius:99px;
+  background:rgba(79,64,54,.09);
+  border:1.5px solid var(--ink-soft);overflow:hidden;
+}
+.chart-fill{
+  display:block;height:100%;width:0;border-radius:99px;
+  background:var(--coral);
+  transition:width .9s var(--ease) .15s;
+}
+.slide.on .chart-fill{width:var(--w)}
+.chart-fill.leaf{background:var(--leaf)}
+.chart-fill.sky{background:var(--sky)}
+.chart-fill.ghost{background:repeating-linear-gradient(45deg,rgba(79,64,54,.22) 0 4px,transparent 4px 8px)}
+/* "you" vs "batch" paired bars: the second is thinner and muted so the
+   comparison reads at a glance without a legend competing for space */
+.chart-track.thin{height:8px;margin-top:4px}
+.chart-sub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:600}
+
+/* Donut — part-to-whole for ONE value against its total. Built with a
+   conic-gradient ring rather than SVG so it reflows with the card and needs no
+   viewBox math. Used where a bare percentage is ambiguous ("25%" of what?):
+   the ring shows the whole, the centre label states the count outright.
+   Deliberately not a multi-slice pie — slices are hard to compare by angle,
+   and every one of these is a single share against a remainder. */
+.donutwrap{display:flex;align-items:center;gap:16px;margin:4px 0 14px}
+.donut{
+  position:relative;flex:none;width:104px;height:104px;border-radius:50%;
+  background:conic-gradient(var(--coral-onwhite) calc(var(--p) * 1%), rgba(79,64,54,.11) 0);
+  --p:0;
+  /* @property --p above (registered as a <number>) is what makes this
+     transition-able at all -- an unregistered custom property can only ever
+     snap between values. With it registered, the ring genuinely sweeps in
+     sync with app.js's countUp digits instead of a static ring the number
+     ticks against. */
+  transition:--p .9s var(--ease);
+}
+@media(prefers-reduced-motion:reduce){.donut{transition:none}}
+/* Punches the hole, and the dashed ring keeps it in the hand-drawn language. */
+.donut::after{
+  content:'';position:absolute;inset:15px;border-radius:50%;
+  background:linear-gradient(160deg,#ffffff,var(--paper));
+  border:1px dashed var(--border-light);
+}
+.donut .mid{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:1;line-height:1;
+}
+.donut .mid b{font-family:'Bevan',serif;font-size:23px;color:var(--coral-text)}
+.donut .mid s{font-family:'Montserrat';font-size:9.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);text-decoration:none;margin-top:3px}
+.donutside{min-width:0;flex:1}
+.donutside .big-n{font-family:'Bevan',serif;font-size:clamp(30px,10vw,42px);font-size:clamp(30px,10cqw,42px);
+  color:var(--ink);line-height:1}
+.donutside .cap{font-size:14px;color:var(--muted);font-weight:600;margin-top:4px;line-height:1.35}
+.donut.leaf{background:conic-gradient(var(--leaf) calc(var(--p) * 1%), rgba(79,64,54,.11) 0)}
+.donut.leaf .mid b{color:var(--leaf)}
+
+/* Vertical bar chart — one unit across a few categories, so heights are
+   directly comparable. Labels sit under each bar; the value sits above it. */
+.vbars{display:flex;align-items:flex-end;gap:7px;height:132px;margin:6px 0 12px}
+.vbar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.vbar .vnum{font-family:'Montserrat';font-size:11.5px;font-weight:800;color:var(--coral-text);margin-bottom:3px}
+.vbar .vcol{
+  width:100%;height:0;border-radius:12px 4px 10px 4px/4px 10px 4px 12px;
+  background:rgba(79,64,54,.13);border:1.5px solid var(--ink-soft);
+  transition:height .8s var(--ease) .2s;
+}
+.slide.on .vbar .vcol{height:var(--h)}
+.vbar.me .vcol{background:var(--coral-onwhite);border-color:var(--ink-strong)}
+.vbar .vlab{font-size:10px;font-weight:700;letter-spacing:.02em;color:var(--muted);
+  margin-top:6px;text-align:center;line-height:1.15;overflow-wrap:break-word;width:100%}
+.vbar.me .vlab{color:var(--ink)}
+
+/* Line graph — the one chart here that genuinely needs SVG (a polyline over
+   a time axis can't be done in flex). preserveAspectRatio="none" lets it
+   stretch to the card width while the stroke stays a constant weight via
+   vector-effect, so it never thins out or overflows. */
+.linewrap{margin:4px 0 12px}
+/* The plot gets its own relative box so the dots can be positioned over it in
+   percentages that map to the same space the polyline uses. */
+.lineplot{position:relative;height:110px}
+.linechart{display:block;width:100%;height:100%;overflow:visible}
+/* Dots are CSS circles, not SVG <circle>. preserveAspectRatio="none" stretches
+   the viewBox horizontally to fill the card, which turns any SVG circle into a
+   visible ellipse — vector-effect fixes stroke width but not shape. */
+.ldot{
+  position:absolute;width:9px;height:9px;border-radius:50%;
+  background:#fff;border:2px solid var(--ink-strong);
+  transform:translate(-50%,-50%);
+}
+.linechart .grid{stroke:rgba(79,64,54,.13);stroke-width:1;stroke-dasharray:3 4;vector-effect:non-scaling-stroke}
+.linechart .area{fill:rgba(217,79,64,.13)}
+.linechart .ln{fill:none;stroke:var(--coral-onwhite);stroke-width:2.5;stroke-linejoin:round;
+  stroke-linecap:round;vector-effect:non-scaling-stroke}
+.lineaxis{display:flex;justify-content:space-between;margin-top:5px}
+.lineaxis span{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.02em}
+
+@container fr (max-height:780px){
+  .donut{width:88px;height:88px}
+  .donut::after{inset:13px}
+  .donut .mid b{font-size:20px}
+  .vbars{height:110px}
+  .lineplot{height:92px}
+}
+
+/* Rank ladder (platform preferences). A numbered column + bar, where bar
+   length is inverse rank -- #1 longest. Rank is ordinal, not a quantity, so
+   the bar is a visual position cue and the ordinal is stated explicitly
+   beside it rather than left to be inferred from length. */
+.ladder{margin:4px 0 14px}
+.ladder-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1.5px solid rgba(79,64,54,.10)}
+.ladder-row:last-child{border-bottom:0}
+.ladder-no{
+  flex:none;width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Grandstander';font-size:12.5px;font-weight:800;
+  border:1.5px solid var(--ink-soft);color:var(--muted);background:var(--paper);
+}
+.ladder-row.first .ladder-no{background:var(--coral-onwhite);color:#fff;border-color:var(--ink-soft)}
+/* display:block is load-bearing on all three — these are <span>s in the
+   markup, and height/margin simply do not apply to inline boxes, so the
+   bars rendered at zero height (invisible) until they were blockified. */
+.ladder-body{flex:1;min-width:0;display:block}
+.ladder-name{display:block;font-size:15px;font-weight:700;line-height:1.25;overflow-wrap:break-word}
+.ladder-bar{display:block;height:8px;border-radius:99px;background:rgba(79,64,54,.09);margin-top:5px;overflow:hidden}
+.ladder-bar > i{display:block;height:100%;width:0;border-radius:99px;background:var(--leaf);transition:width .8s var(--ease) .2s}
+.slide.on .ladder-bar > i{width:var(--w)}
+.ladder-row.first .ladder-bar > i{background:var(--coral)}
+
+@container fr (max-height:780px){
+  .chart-row{margin-bottom:9px}
+  .chart-label{font-size:13.5px}
+  .chart-track{height:11px}
+  .ladder-row{padding:5px 0}
+  .ladder-name{font-size:14px}
+  .ladder-no{width:23px;height:23px;font-size:11.5px}
+}
+
+/* While a full-bleed act break is showing, the frame chrome (progress bars,
+   hint, lantern) sits on saturated color instead of parchment and vanishes.
+   #frame gets an .on-break class from show() — these are siblings of .slide,
+   not descendants, so a descendant selector can't reach them. */
+#frame.on-break .bar{background:rgba(255,255,255,.26);border-color:rgba(255,255,255,.5)}
+#frame.on-break .bar > i{background:#fff}
+#frame.on-break #bars::before{border-top-color:rgba(255,255,255,.34)}
+#frame.on-break #hint{color:rgba(255,255,255,.78);text-shadow:none}
+#frame.on-break #lantern{opacity:0;transition:opacity .3s var(--ease)}
+#lantern{transition:opacity .3s var(--ease)}
+
+/* ── journey (attendance + mahjong) ────────────────────────────────────────
+   A vertical timeline of events actually attended. The rail is a dashed ink
+   stroke with a filled node per event, which reads as hand-drawn rather than
+   as a Gantt bar, and stacks safely at 320px because every row is full-width
+   with the text below the node, not beside it. */
+.timeline{position:relative;margin:6px 0 14px;padding-left:26px}
+.timeline::before{
+  content:'';position:absolute;left:7px;top:6px;bottom:6px;width:0;
+  border-left:2px dashed var(--ink-soft);
+}
+.tl-row{position:relative;padding:0 0 15px}
+.tl-row:last-child{padding-bottom:0}
+.tl-node{
+  position:absolute;left:-26px;top:2px;width:16px;height:16px;border-radius:50%;
+  background:var(--coral-onwhite);border:2px solid var(--ink-strong);
+}
+.tl-row.dim .tl-node{background:var(--paper)}
+.tl-name{font-size:16px;font-weight:700;line-height:1.25}
+.tl-meta{font-size:13px;color:var(--muted);margin-top:2px;font-weight:600}
+
+/* Mahjong: a small stat trio + cosmetics/achievement chips. */
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 14px}
+.statbox{
+  position:relative;text-align:center;padding:12px 6px;
+  border-radius:30px 9px 26px 9px/9px 26px 9px 30px;
+  background:linear-gradient(160deg,#ffffff,var(--paper));
+  box-shadow:0 8px 18px rgba(61,50,42,.07);
+}
+.statbox::before{content:'';position:absolute;inset:0;pointer-events:none;filter:url(#rough-edge);
+  border:2px solid var(--ink-strong);border-radius:30px 9px 26px 9px/9px 26px 9px 30px}
+.statbox .n{font-family:'Bevan',serif;font-size:clamp(22px,7vw,28px);font-size:clamp(22px,7cqw,28px);
+  color:var(--coral-text);line-height:1}
+.statbox .k{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-top:5px;line-height:1.2}
+
+@container fr (max-height:780px){
+  .tl-row{padding-bottom:12px}
+  .tl-name{font-size:15px}
+  .statbox{padding:10px 5px}
+}
+
+/* ── act breaks ────────────────────────────────────────────────────────────
+   Full-bleed interstitials that split the deck into acts ("now that you know
+   X, here's Y"). Type drops in from above with a slight overshoot, one line
+   at a time, which is the beat Spotify Wrapped uses between sections.
+
+   Deliberately NOT a card: the whole slide floods with color, which is what
+   makes it read as a chapter break rather than another data slide. That also
+   sidesteps the no-flat-rectangles rule, since there's no rectangle — the
+   wobbly frame edge is still doing the shaping.
+
+   Background is --coral-onwhite / --leaf, both of which carry white text at
+   4.5:1, so even the small eyebrow passes AA. */
+.v-break .inner{justify-content:center;text-align:left}
+/* Each break is a time of day on the walk, not a flat swatch: a sky wash with
+   a hill silhouette along the bottom, so the reader is standing somewhere. */
+/* tone-coral opens on the brand peach instead of the hot #E4744A it used to
+   start on -- that stop was the single most saturated colour in the whole
+   deck, so cutting to it full-bleed read as a flash rather than a walk into
+   the next chapter. The peach cap sits entirely above where .break-eyebrow
+   sits (vertically centred, so nothing legible ever lands on it), and it's
+   fully resolved to --coral-onwhite -- the same accessible coral already
+   used for text-bearing surfaces elsewhere -- well before any text starts. */
+/* Frosted glass over the walk, not a hard cut away from it: the wash is
+   translucent and blurred (backdrop-filter below) rather than a fully opaque
+   flood, so #village -- clouds included -- keeps showing through, softened,
+   behind the act break's own type. Same three tones, same alpha ramp, just
+   with alpha < 1 stops instead of solid ones. */
+.v-break{backdrop-filter:blur(10px) saturate(1.08);-webkit-backdrop-filter:blur(10px) saturate(1.08)}
+.v-break.tone-coral{background:linear-gradient(170deg,rgba(243,191,141,.86) 0%,rgba(203,74,60,.90) 24%,rgba(168,61,49,.94) 100%)}
+.v-break.tone-leaf{background:linear-gradient(170deg,rgba(127,169,127,.86),rgba(84,128,96,.90) 58%,rgba(63,107,80,.94))}
+.v-break.tone-ink{background:linear-gradient(170deg,rgba(110,96,118,.86),rgba(79,64,54,.90) 58%,rgba(51,42,36,.94))}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  /* No backdrop-filter support: fall back to the original fully opaque
+     flood so contrast never regresses on an engine that can't blur. */
+  .v-break.tone-coral{background:linear-gradient(170deg,var(--peach) 0%,var(--coral-onwhite) 24%,#A83D31 100%)}
+  .v-break.tone-leaf{background:linear-gradient(170deg,#7FA97F,var(--leaf-onwhite) 58%,#3F6B50)}
+  .v-break.tone-ink{background:linear-gradient(170deg,#6E6076,#4F4036 58%,#332A24)}
+}
+.v-break::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:22%;z-index:0;
+  background:no-repeat bottom/100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 520 90' preserveAspectRatio='none'%3E%3Cpath fill='rgba(255,255,255,0.13)' d='M0 42q90-26 178-8 88 18 168-12 82-30 174 6v62H0z'/%3E%3Cpath fill='rgba(255,255,255,0.10)' d='M0 64q104-20 200-4 96 16 180-10 76-24 140 8v42H0z'/%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.v-break .inner{z-index:2}
+/* the signpost */
+.post{display:block;margin:0 0 20px;width:168px;height:108px;overflow:visible}
+.post-cn{
+  /* Same system Kaiti stack the .cn accents use -- no webfont is loaded for
+     Chinese, so naming one here would just fall through unpredictably. */
+  font-family:'Kaiti SC','STKaiti','KaiTi','\6977\4f53',serif;
+  font-size:19px;fill:#fff;letter-spacing:.06em;
+}
+.post-place{
+  font-family:'Montserrat',sans-serif;font-size:10.5px;font-weight:600;
+  fill:rgba(255,255,255,.9);letter-spacing:.06em;
+}
+.break-eyebrow{
+  font-family:'Montserrat';font-size:11.5px;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;color:rgba(255,255,255,.82);margin:0 0 18px;
+}
+.break-line{
+  font-family:'Grandstander';font-weight:800;color:#fff;
+  font-size:clamp(26px,8vw,40px);font-size:clamp(26px,8cqw,40px);
+  line-height:1.14;margin:0 0 8px;letter-spacing:-.01em;
+}
+.break-line.soft{color:rgba(255,255,255,.72);font-weight:700}
+.break-rule{
+  width:52px;height:3px;border-radius:99px;background:rgba(255,255,255,.55);
+  margin:20px 0 0;
+}
+/* The drop: each line falls from above and settles with a small overshoot.
+   Uses its own keyframe rather than the shared .rise so the act break reads
+   as a distinct gesture from the ordinary slide entrance. */
+.slide.on.v-break .inner > *:not(.settled){
+  opacity:0;transform:translateY(-34px);
+  animation:drop .62s cubic-bezier(.22,1.4,.36,1) forwards;
+}
+@keyframes drop{to{opacity:1;transform:translateY(0)}}
+/* Clouds and the village stay visible-but-soft behind an act break now (see
+   the translucent + backdrop-filter tones above) -- the previous version hid
+   them outright with `display:none`, which is exactly the hard cut this
+   frosted-parchment treatment removes. Nothing left to hide here.*/
+
+@container fr (max-height:780px){
+  .break-line{font-size:clamp(23px,7cqw,32px)}
+  .break-eyebrow{margin-bottom:14px}
+  .post{width:140px;height:90px;margin-bottom:14px}
+  .post-cn{font-size:17px}
+}
+@container fr (max-height:660px){
+  .post{width:120px;height:77px;margin-bottom:10px}
+  .post-cn{font-size:15px}
+  .post-place{font-size:9.5px}
+}
+
+/* ── taste slide variants ──────────────────────────────────
+   Which of these renders depends on the member's data -- a menu, a poster,
+   a tracklist, or a prize grid -- so the single taste slide still varies
+   across the batch. */
+
+/* food: a menu page with dotted leaders */
+.v-food .inner{background:
+  repeating-linear-gradient(180deg,transparent 0 33px,rgba(217,79,64,.05) 33px 34px);}
+.menu{border-top:3px double var(--ink-strong);border-bottom:3px double var(--ink-strong);padding:12px 0;margin-bottom:14px}
+.menu-row{display:flex;align-items:baseline;gap:6px;padding:8px 2px}
+.menu-row .dish{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64%}
+.menu-row .lead{flex:1;border-bottom:2px dotted rgba(79,64,54,.4);transform:translateY(-4px)}
+.menu-row .amt{font-size:14px;font-weight:800;color:var(--coral-text);white-space:nowrap}
+.menu-note{text-align:center;color:var(--muted);font-size:14px}
+
+/* dice prizes: a tile grid. Dice-pip glyphs are replaced with a small ink-
+   bordered index numeral -- no icon-like unicode on a themed surface. */
+.v-dicePrizes .inner{background:linear-gradient(160deg,rgba(94,143,107,.12),transparent 60%)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:6px 0 14px}
+.tile{
+  position:relative;border-radius:34px 10px 30px 10px/10px 30px 10px 34px;
+  background:linear-gradient(160deg,#ffffff,var(--paper));
+  padding:12px 11px;box-shadow:0 8px 18px rgba(61,50,42,.08);min-height:78px;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.tile::before{content:'';position:absolute;inset:0;pointer-events:none;filter:url(#rough-edge);
+  border:2px solid var(--ink-strong);
+  border-radius:34px 10px 30px 10px/10px 30px 10px 34px;}
+.tile .no{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;
+  border:1.5px solid var(--ink-soft);border-radius:50%;font-family:'Grandstander';font-size:11px;
+  font-weight:800;color:var(--sky-text)}
+.tile .pname{font-size:14.5px;font-weight:700;line-height:1.3}
+.tile .pshare{font-size:12px;font-weight:800;color:var(--coral-text)}
+
+@container fr (max-height:780px){
+  .menu-row{padding:6px 2px}
+  .menu-row .dish{font-size:15.5px}
+  .tile{min-height:66px;padding:10px 9px}
+}
+
+/* persona polaroid -- replaces the old circular emoji badge. Parchment card,
+   wobbly "viewfinder" radius, a leaf calligraphic tag standing in for an
+   icon, name and tagline in the display face.
+
+   The static -2deg tilt lives on the nested .polaroid-card, not on .polaroid
+   itself: .polaroid is a direct child of .inner, so it's caught by the
+   generic ".slide.on .inner > *" entrance rule below, whose "forwards" fill
+   permanently pins transform on that element once the animation ends (a
+   completed forwards-fill animation overrides the cascade indefinitely,
+   including later inline-style writes -- verified directly in-browser,
+   getComputedStyle(el).transform stayed locked at the identity matrix long
+   after the animation should have finished). Any static transform declared
+   on .polaroid itself would be silently discarded the same way. Nesting the
+   tilt one level down sidesteps the conflict entirely. */
+.polaroid{position:relative;align-self:center;width:min(300px,86vw);width:min(300px,86cqw);margin:0 auto 20px}
+.polaroid-card{
+  position:relative;background:linear-gradient(160deg,#ffffff,var(--paper));
+  border-radius:70px 18px 62px 18px/18px 62px 18px 70px;
+  padding:28px 20px 22px;text-align:center;
+  box-shadow:0 14px 30px rgba(61,50,42,.12);
+  transform:rotate(-2deg);
+}
+.polaroid-card::before{content:'';position:absolute;inset:0;pointer-events:none;filter:url(#rough-edge);
+  border:2.5px solid var(--ink-strong);
+  border-radius:70px 18px 62px 18px/18px 62px 18px 70px;}
+.polaroid .tag{font-family:'Kaiti SC','STKaiti','KaiTi','楷体',serif;font-size:34px;line-height:1;margin-bottom:8px}
+.polaroid .pname{font-family:'Grandstander';font-weight:800;font-size:clamp(17px,5.4vw,26px);font-size:clamp(17px,5.4cqw,26px);color:var(--ink);
+  line-height:1.15;overflow-wrap:break-word;hyphens:auto}
+.polaroid .peyebrow{font-family:'Montserrat';font-size:10.5px;font-weight:700;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+/* recap */
+.recap .card{margin-bottom:9px;padding:12px 15px}
+
+/* ── the recap's fireworks ────────────────────────────────────────────────
+   A once-only celebration over the dusk sky that's already showing through
+   here (see the scroll-lock exemption above) -- this is the reveal, so the
+   sky gets to do something about it instead of just sitting there. Built as
+   a sibling of .inner, not a child, so it never enters the per-slide
+   entrance stagger (.inner > *:nth-child(n)) and never competes with it for
+   the transform property.
+   Each burst is one positioned dot with N spokes fired outward via
+   individual rotate+translate transforms -- the standard CSS confetti-burst
+   technique, no canvas or SVG path data needed for something this small. */
+.fireworks{position:absolute;inset:0;top:0;height:46%;pointer-events:none;overflow:visible;z-index:0}
+.fw{position:absolute;width:0;height:0}
+.fw i{
+  position:absolute;left:0;top:0;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
+  border-radius:50%;background:var(--c);
+  transform:rotate(var(--ang)) translateY(0) scale(.4);
+  opacity:0;
+  animation:fwspoke 1.05s cubic-bezier(.19,1,.22,1) both;
+  animation-delay:var(--d,0s);
+}
+@keyframes fwspoke{
+  0%{opacity:0;transform:rotate(var(--ang)) translateY(0) scale(.5)}
+  18%{opacity:1}
+  100%{opacity:0;transform:rotate(var(--ang)) translateY(-42px) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+  /* Motion off, not delight off: spokes land fully extended and dimmed,
+     so the burst still reads as a burst -- just held still. */
+  .fw i{animation:none;opacity:.6;transform:rotate(var(--ang)) translateY(-42px) scale(1)}
+}
+
+/* The wobbly ink outline lives on a ::before overlay, not on .btn itself --
+   .btn is the element the enter-stagger animates (transform/opacity), and
+   the brief's iOS-Safari warning is specifically about filters recomputing
+   against an animating subtree. Keeping the filter on a static sibling
+   pseudo sidesteps that entirely. */
+.btn{
+  position:relative;display:block;width:100%;text-align:center;text-decoration:none;
+  font-family:'Grandstander';font-size:17px;font-weight:800;
+  padding:15px 20px;border-radius:60px 12px 56px 12px/12px 56px 12px 60px;
+  background:var(--coral-onwhite);color:#fff;border:none;
+  transition:transform .12s var(--ease);cursor:pointer;
+}
+.btn::before{content:'';position:absolute;inset:0;pointer-events:none;filter:url(#rough-edge);
+  border:2px solid var(--ink-soft);border-radius:60px 12px 56px 12px/12px 56px 12px 60px;}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:#fff;color:var(--leaf);border:2px solid var(--leaf);font-size:15px;padding:12px}
+.btn.ghost::before{content:none}
+.btn.ghost:active{transform:scale(.96)}
+
+/* ── share sheet ───────────────────────────────────────────────────────────
+   A real <dialog popover>, on the top layer, opened with showModal() --
+   Esc-to-close and focus trapping come free from the element itself, no
+   z-index or scroll-lock hand-holding needed. ::backdrop is the frosted
+   scrim over the village; .sheet is itself frosted parchment floating over
+   that, matching the watercolour-layers depth logic the rest of the system
+   already uses (see the act-break treatment above). The image is shown at
+   full width so it can be long-pressed and saved on iOS as a fallback to the
+   Web Share Level 2 flow in share.js. */
+#sharewrap{
+  border:none;padding:0;margin:auto;background:transparent;color:inherit;
+  max-width:min(370px,92vw);width:100%;max-height:92dvh;
+  overflow:visible;
+}
+#sharewrap::backdrop{
+  backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
+  background:rgba(61,50,42,.34);
+}
+#sharewrap .sheet{
+  position:relative;
+  background:rgba(255,252,247,.72);
+  backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2);
+  border:2.5px solid var(--ink-strong);
+  border-radius:44px 14px 40px 14px/14px 40px 14px 44px;
+  padding:22px 18px;max-width:330px;margin:0 auto;text-align:center;
+  max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  #sharewrap .sheet{background:var(--paper)}
+  #sharewrap::backdrop{background:rgba(30,28,27,.86)}
+}
+#sharewrap img{
+  width:100%;height:auto;display:block;border-radius:14px;
+  border:2px solid var(--ink-soft);background:var(--paper);
+}
+#sharewrap .hint{
+  font-family:'Montserrat';font-size:12.5px;font-weight:600;color:var(--muted);
+  margin:12px 0 14px;line-height:1.5;
+}
+#sharewrap .srow{display:flex;gap:9px}
+#sharewrap .sbtn{
+  flex:1;display:block;text-align:center;text-decoration:none;cursor:pointer;
+  font-family:'Grandstander';font-size:15px;font-weight:800;padding:13px 10px;
+  border-radius:40px 10px 36px 10px/10px 36px 10px 40px;
+  background:var(--coral-onwhite);color:#fff;border:2px solid transparent;
+}
+#sharewrap .sbtn.ghost{background:transparent;border-color:var(--leaf);color:var(--leaf)}
+
+/* ── loading screen ──────────────────────────────────────────────────────
+   A morning sky (the walk's own opening time-of-day) with the same mascot
+   who walks the panorama, so this reads as the first beat of the story
+   rather than a spinner bolted on top of it. JS holds it up for a minimum
+   3s (see LOAD_MIN below) and reuses the walker art already inlined for
+   #walker, so nothing here duplicates that data URI. */
+#loader{
+  position:absolute;inset:0;z-index:100;
+  overflow:hidden;
+  transition:opacity .3s var(--ease);
+}
+/* Final hide/cleanup once the rush has had time to clear the frame -- by
+   then .ldr-sky is already transparent, so this is just tidying up the
+   swallow-clicks overlay, not the actual visual reveal. */
+#loader.gone{opacity:0;pointer-events:none}
+/* The sky itself lives on its own layer so it can fade out fast on its own
+   -- gradients don't interpolate as a CSS transition, but opacity does, so
+   this is what actually uncovers the ground scene (already settled behind
+   by show(0)) while the rush clouds are still streaking across it, instead
+   of everything snapping into view only once .gone finally lands. */
+.ldr-sky{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,var(--tod-top,#BFE0F3) 0%,var(--paper) 78%);
+  transition:opacity .4s ease;
+}
+#loader.done .ldr-sky{opacity:0}
+.ldr-content{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  transition:opacity .25s ease;
+}
+#loader.done .ldr-content{opacity:0}
+.ldr-cloud{
+  position:absolute;top:14%;width:64px;height:26px;border-radius:99px;
+  background:#fff;opacity:.9;
+  animation:ldr-drift 9s ease-in-out infinite;
+}
+.ldr-cloud::before,.ldr-cloud::after{content:'';position:absolute;background:#fff;border-radius:99px}
+.ldr-cloud::before{width:34px;height:34px;top:-14px;left:8px}
+.ldr-cloud::after{width:26px;height:26px;top:-9px;right:6px}
+.ldr-cloud.c1{left:12%;animation-delay:0s}
+.ldr-cloud.c2{left:58%;top:24%;transform:scale(.75);animation-delay:-3s}
+.ldr-cloud.c3{left:30%;top:8%;transform:scale(.55);animation-delay:-6s}
+@keyframes ldr-drift{0%,100%{transform:translateX(0)}50%{transform:translateX(18px)}}
+.ldr-walker{height:76px;width:auto;transform:scaleX(-1);animation:walkbob 1.05s ease-in-out infinite}
+.ldr-prints{position:relative;width:64px;height:8px;margin-top:-4px}
+.ldr-prints i{
+  position:absolute;bottom:0;width:5px;height:7px;border-radius:60% 60% 45% 45%;
+  background:var(--ink-soft);animation:ldr-print 1.6s ease-in-out infinite;
+}
+.ldr-prints i:nth-child(1){left:0;animation-delay:0s}
+.ldr-prints i:nth-child(2){left:20px;animation-delay:.2s}
+.ldr-prints i:nth-child(3){left:40px;animation-delay:.4s}
+.ldr-prints i:nth-child(4){left:60px;animation-delay:.6s}
+@keyframes ldr-print{0%,100%{opacity:.15}50%{opacity:.7}}
+.ldr-title{
+  font-family:'Grandstander';font-weight:800;font-size:16px;color:var(--ink);
+  display:flex;align-items:center;gap:2px;letter-spacing:-.01em;
+}
+.ldr-dots i{
+  display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--coral);
+  margin-left:3px;animation:ldr-dot 1.2s ease-in-out infinite;
+}
+.ldr-dots i:nth-child(2){animation-delay:.15s}
+.ldr-dots i:nth-child(3){animation-delay:.3s}
+@keyframes ldr-dot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.ldr-bar{width:120px;height:4px;border-radius:99px;background:rgba(79,64,54,.14);overflow:hidden}
+/* 3s to match LOAD_MIN in the script below -- if one changes, so must the other. */
+.ldr-bar > i{display:block;height:100%;width:6%;background:var(--coral);border-radius:inherit;animation:ldr-fill 3s linear forwards}
+@keyframes ldr-fill{from{width:6%}to{width:96%}}
+
+/* ── loader failure state ─────────────────────────────────────────────────
+   Fetch failed (bad token, network error, or the 12s timeout in api.js) --
+   the reader stays on the same parchment/sky loader they've been looking at,
+   just with the walker/dots/progress-bar swapped for a brand error card
+   (app.js's showLoaderError()) instead of a spinner promising progress that
+   isn't happening. Never dismisses on its own; "Try again" reloads. */
+#loader.error .ldr-walker,
+#loader.error .ldr-prints,
+#loader.error .ldr-dots,
+#loader.error .ldr-bar{display:none}
+#loader.error .ldr-content{gap:16px;padding:0 28px;text-align:center}
+
+/* The descent -- a fuller streak of cloud puffs than the ambient three above,
+   all rushing upward past the frame at once. Reads as falling down out of
+   the sky rather than "content faded, new content faded in": show(0) has
+   already settled the ground scene behind by the time these start (see the
+   script), so what the reader sees is clouds parting onto solid ground. */
+.ldr-rush{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.ldr-rush i{position:absolute;bottom:-20%;border-radius:99px;background:#fff;opacity:0}
+.ldr-rush i::before,.ldr-rush i::after{content:'';position:absolute;background:#fff;border-radius:99px}
+.ldr-rush i::before{width:60%;height:60%;top:-35%;left:12%}
+.ldr-rush i::after{width:45%;height:45%;top:-22%;right:10%}
+#loader.done .ldr-rush i{animation:ldr-rush .9s cubic-bezier(.32,0,.6,1) forwards}
+@keyframes ldr-rush{
+  0%{opacity:0;transform:translateY(0) scale(.85)}
+  10%{opacity:1}
+  100%{opacity:0;transform:translateY(-760%) scale(1.35)}
+}
+/* The ground rushing up to meet the reader -- without this, clouds sliding
+   up past a scene that never moves reads as "clouds rising off the ground"
+   (that was the actual complaint) instead of "falling toward the ground".
+   Applied to #village and to slide zero at the same moment as the rush:
+   both start pulled in slightly small/low, like they're still a beat below,
+   then grow to their resting size and position as the clouds clear -- the
+   ground closing the distance, not the sky just peeling back off a static
+   scene. transform-origin low so growth reads as "coming up", not "zooming
+   in on the middle of the frame". */
+.ldr-fall{
+  transform:scale(.9) translateY(3.5%);
+  transform-origin:50% 78%;
+  transition:transform .9s cubic-bezier(.16,1,.3,1);
+}
+.ldr-fall.ldr-land{transform:scale(1) translateY(0)}
+@media(prefers-reduced-motion:reduce){
+  .ldr-cloud{animation:none}
+  .ldr-walker{animation:none}
+  .ldr-prints i{animation:none;opacity:.4}
+  .ldr-dots i{animation:none;opacity:.6}
+  .ldr-bar > i{animation:none;width:96%;transition:width .3s linear}
+  .ldr-content{transition:none}
+  .ldr-sky{transition:none}
+  .ldr-rush i{display:none}
+  .ldr-fall{transform:none;transition:none}
+}
+
+/* ── nav ─────────────────────────────────────────────────── */
+/* Nav is handled on #frame by hit position -- overlay divs would sit above the
+   scrolling slide and swallow the scroll gesture on tall content. */
+#hint{
+  /* Rides low on the path. The halo is what keeps it readable as the ground
+     under it changes from grass to dirt to dusk over the course of the walk.
+     bottom is env(safe-area-inset-bottom) + the old fixed offset so it clears
+     the home-indicator bar on notched iPhones instead of sitting under it. */
+  position:absolute;bottom:calc(11px + env(safe-area-inset-bottom));left:0;right:0;z-index:16;text-align:center;
+  font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,252,247,.85),0 0 6px rgba(255,252,247,.9);
+  opacity:.62;pointer-events:none;
+  animation:pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{50%{opacity:.35}}
+
+/* ── compact mode for short phones (SE / mini / landscape-ish) ──
+   Chrome alone eats ~27% of a 568px-tall screen. Tightening padding and type
+   here keeps most slides on one screen instead of behind a scroll.
+   Keyed to the frame via a container query, with a viewport media-query
+   fallback for engines without container support. */
+@container fr (max-height:780px){
+  .inner{padding:56px 20px 68px}
+  h1{font-size:clamp(34px,10vw,44px);font-size:clamp(34px,10cqw,44px)}
+  h2{font-size:clamp(23px,6.4vw,30px);font-size:clamp(23px,6.4cqw,30px);margin-bottom:11px}
+  p{font-size:16px;line-height:1.55;margin-bottom:11px}
+  .sm{font-size:14px;line-height:1.5}
+  .big{font-size:clamp(52px,17vw,80px);font-size:clamp(52px,17cqw,80px)}
+  .big.sm-num{font-size:clamp(40px,13vw,60px);font-size:clamp(40px,13cqw,60px)}
+  .card{padding:12px 14px;margin-bottom:9px}
+  .chip{font-size:13.5px;padding:6px 12px}
+  .quote{font-size:16.5px;line-height:1.6}
+  .meter{height:8px;margin-top:6px}
+  .polaroid{width:min(260px,82vw);width:min(260px,82cqw);margin-bottom:14px}
+  .polaroid .tag{font-size:28px}
+  #hint{bottom:calc(16px + env(safe-area-inset-bottom))}
+  .btn{padding:13px 18px;font-size:16px}
+}
+@container fr (max-height:580px){
+  .inner{padding:50px 18px 58px}
+  .card{padding:10px 13px;margin-bottom:8px}
+  .polaroid{width:min(230px,80vw);width:min(230px,80cqw)}
+  .polaroid .tag{font-size:22px}
+  .kicker{margin-bottom:10px}
+  /* #walker is sized by height, so on a short frame it eats a much bigger
+     share of the vertical space and starts overlapping #hint just above
+     the near layer. Measured at 320x568: height:46px + the default bottom
+     offset still overlapped #hint by ~9px, so both the size and the anchor
+     point are pinned to fixed px here rather than the percentage used above
+     580px, with the gap between them checked directly rather than assumed. */
+  #walker{height:40px;bottom:30px}
+  #hint{bottom:calc(8px + env(safe-area-inset-bottom))}
+}
+/* Viewport-height fallback for engines WITHOUT container-query support.
+   Gated behind @supports specifically because these rules would otherwise
+   override the @container tiers above wherever both apply: the media query
+   measures the browser window while the container query measures the card,
+   and the two disagree constantly (a short desktop window or a short Apps
+   Script iframe around a tall card, a phone in landscape). Source order
+   made the window win, so a tall card inside a 400px-tall window rendered
+   with compact type and a shrunken polaroid for no reason. */
+@supports not (container-type: size){
+  @media(max-height:780px){
+    .inner{padding:56px 20px 68px}
+    h1{font-size:clamp(34px,10vw,44px);font-size:clamp(34px,10cqw,44px)}
+    h2{font-size:clamp(23px,6.4vw,30px);font-size:clamp(23px,6.4cqw,30px);margin-bottom:11px}
+    p{font-size:16px;line-height:1.55;margin-bottom:11px}
+    .sm{font-size:14px;line-height:1.5}
+    .big{font-size:clamp(52px,17vw,80px);font-size:clamp(52px,17cqw,80px)}
+    .big.sm-num{font-size:clamp(40px,13vw,60px);font-size:clamp(40px,13cqw,60px)}
+    .card{padding:12px 14px;margin-bottom:9px}
+    .chip{font-size:13.5px;padding:6px 12px}
+    .quote{font-size:16.5px;line-height:1.6}
+    .meter{height:8px;margin-top:6px}
+    .polaroid{width:min(260px,82vw);width:min(260px,82cqw);margin-bottom:14px}
+    .polaroid .tag{font-size:28px}
+    #hint{bottom:calc(16px + env(safe-area-inset-bottom))}
+    .btn{padding:13px 18px;font-size:16px}
+  }
+  @media(max-height:580px){
+    .inner{padding:50px 18px 58px}
+    .card{padding:10px 13px;margin-bottom:8px}
+    .polaroid{width:min(230px,80vw);width:min(230px,80cqw)}
+    .polaroid .tag{font-size:22px}
+  }
+}
+
+/* ── scroll-driven bar fills on the tall, scroll-locked slides ─────────────
+   applyScrollState() (app.js) flags a slide .scroll-locked the moment its
+   content doesn't fit one screen -- the platform ladder and the twins
+   chart-pair are the two real-world cases. A one-shot entry animation on
+   those throws away the storybook framing: the reader scrolls PAST bars that
+   already finished filling before they ever looked at them. Each bar instead
+   paints as it scrolls into view, driven by the slide's own scroll offset
+   (scroll(nearest) walks up to the nearest scroll container, which for a bar
+   nested in .card > .ladder-row inside a .slide is the .slide itself).
+   Ordinary (non-scroll-locked) slides are untouched -- the existing
+   .slide.on-triggered width/height transition still fires once on entry. */
+@supports (animation-timeline: scroll()){
+  .scroll-locked .chart-fill,
+  .scroll-locked .ladder-bar > i,
+  .scroll-locked .vbar .vcol{
+    transition:none;
+    animation:barfill-in linear both;
+    animation-timeline:scroll(nearest);
+    animation-range:entry 0% cover 35%;
+  }
+  .scroll-locked .chart-fill,
+  .scroll-locked .ladder-bar > i{ width:var(--w); animation-name:barfill-in-w; }
+  .scroll-locked .vbar .vcol{ height:var(--h); animation-name:barfill-in-h; }
+  @keyframes barfill-in-w{from{width:0}to{width:var(--w)}}
+  @keyframes barfill-in-h{from{height:0}to{height:var(--h)}}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  .slide.on .inner > *{opacity:1;transform:none}
+  .meter > i{width:var(--w) !important}
+  #lantern{animation:none}
+  .scroll-locked .chart-fill,.scroll-locked .ladder-bar > i,.scroll-locked .vbar .vcol{animation:none !important}
+}
