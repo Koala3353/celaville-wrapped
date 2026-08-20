@@ -1,0 +1,34 @@
+name: Deploy GitHub Pages
+
+# Deploys the site/ folder specifically, not the whole repo root -- this repo
+# only ever contains site/ anyway (everything else is gitignored on the local
+# working copy), but this keeps the source of truth explicit rather than
+# relying on that being true forever.
+on:
+  push:
+    branches: [main]
+    paths: ["site/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
