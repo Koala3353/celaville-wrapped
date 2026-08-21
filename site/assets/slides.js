@@ -36,14 +36,63 @@ function chartRow(label,valText,pct,cls){
    own doesn't say what the denominator is. */
 function donut(part,whole,headline,caption,cls){
   var pct = whole>0 ? Math.round((part/whole)*100) : 0;
+  // data-p is what app.js's animateDonuts() actually queries for (it was
+  // missing here, so the ring's --p transition never had a "from 0" state to
+  // animate from and just silently rendered static -- caught while wiring up
+  // gauge() below onto the same mechanism).
   return '<div class="donutwrap">'+
-    '<div class="donut'+(cls?' '+cls:'')+'" style="--p:'+pct+'">'+
+    '<div class="donut'+(cls?' '+cls:'')+'" data-p="'+pct+'" style="--p:'+pct+'">'+
       '<span class="mid"><b>'+part+'</b><s>of '+whole+'</s></span>'+
     '</div>'+
     '<div class="donutside">'+
       '<div class="big-n">'+headline+'</div>'+
       (caption?'<div class="cap">'+caption+'</div>':'')+
     '</div></div>';
+}
+
+/* Radial meter/gauge -- same conic-gradient ring as donut() above, but for a
+   ratio that IS the whole story (a single ready-made percentage, not a count
+   that needs a denominator spelled out). MBTI share used to run through
+   chartRow(), which is built for comparing magnitudes across categories; one
+   type's share of the batch is a part-against-a-whole, a meter's actual job,
+   so it gets donut's visual family with a "%" center instead of "n of n". */
+function gauge(pct,headline,caption,cls){
+  pct = Math.max(0,Math.min(100,Math.round(Number(pct)||0)));
+  return '<div class="donutwrap">'+
+    '<div class="donut'+(cls?' '+cls:'')+'" data-p="'+pct+'" style="--p:'+pct+'">'+
+      '<span class="mid"><b>'+pct+'</b><s>%</s></span>'+
+    '</div>'+
+    '<div class="donutside">'+
+      '<div class="big-n">'+headline+'</div>'+
+      (caption?'<div class="cap">'+caption+'</div>':'')+
+    '</div></div>';
+}
+
+/* Pictogram / isotype row: `pct` out of 100 becomes a filled count out of 10
+   icons, so "X of every 10 people" reads at a glance instead of an abstract
+   bar length. Used for the twins/neighbours slide, where the underlying fact
+   really is "how many people, out of a small round number" rather than a
+   magnitude to compare across categories. At least 1 icon fills whenever
+   count>0, for the same reason chartRow floors a bar at 2%: a real overlap
+   rounding down to zero filled icons would misreport "nobody" as the count. */
+function pictoRow(label,countText,pct,count,cls){
+  // Floors at 1 filled icon whenever count>0, same as chartRow's 2% floor:
+  // a group of 1 out of 619 rounds to 0% and would otherwise fill zero
+  // icons, misreporting a real overlap as "nobody" just because the ratio is
+  // too small for a /10 grid to represent honestly.
+  var filled = (Number(count)>0) ? Math.max(1,Math.min(10,Math.round(pct/10))) : 0;
+  var icons='';
+  for(var i=0;i<10;i++){
+    icons += '<i class="picto-icon'+(i<filled?' on'+(cls?' '+cls:''):'')+
+      '" style="--d:'+(i*40)+'ms" aria-hidden="true">'+
+      '<svg viewBox="0 0 20 24"><circle cx="10" cy="6" r="5"/>'+
+      '<path d="M1 23c0-6.6 4-11 9-11s9 4.4 9 11"/></svg></i>';
+  }
+  return '<div class="picto-row">'+
+    '<div class="chart-head"><span class="chart-label">'+label+'</span>'+
+    (countText?'<span class="chart-val">'+countText+'</span>':'')+'</div>'+
+    '<div class="picto-grid">'+icons+'</div>'+
+  '</div>';
 }
 
 /* Vertical bars. `rows` = [{label, value, me}]. Heights are scaled to the
@@ -230,16 +279,34 @@ if(P.birthday && P.birthday.pretty){
     '</p>');
 }
 
+/* returning — new vs. returning member, the other half of "where you enter
+   the village" the basics slide doesn't cover. label is already worded by
+   the backend ("New Member" / "Returning Member"), so this only has to slot
+   it into a sentence rather than invent phrasing for two states. */
+if(P.returning){
+  var rm=P.returning;
+  var rmVerb = /new/i.test(rm.label) ? 'new' : 'returning';
+  add(7500,'<p class="kicker">First time, or back again?</p>'+
+    '<h2>You’re a '+rmVerb+' member</h2>'+
+    '<div class="chart">'+chartRow(esc(rm.label), rm.pct+'%', rm.pct, 'leaf')+'</div>'+
+    '<p class="sm">'+rm.pct+'% of Celaville is too'+
+      (rm.count?' &mdash; '+rm.count+' '+plural(rm.count,'other','others')+' alongside you.':'.')+
+    '</p>');
+}
+
 /* 3 — twins. Counts only, never names: the payload is readable in the page
    source, so naming the matching members would hand every reader a roster of
    who shares their birthday month, MBTI, and high school. See the privacy
-   note in buildPayload_. Each bar is that group as a share of the batch. */
+   note in buildPayload_. This used to be three chartRow bars, but "37% share
+   your MBTI" is an abstract fraction -- a pictogram of "X of every 10 people"
+   is the isotype-chart move for exactly this shape of stat, and it's a more
+   playful, storybook-illustration fit than another bar track. */
 if(P.twins && P.twins.length){
   var t='';
   // three strongest overlaps only — the rest is a scroll nobody finishes
   P.twins.slice(0,3).forEach(function(x){
     var pct = P.n ? Math.round((x.count/P.n)*100) : 0;
-    t+=chartRow(esc(x.label), x.count+' '+plural(x.count,'person','people'), pct);
+    t+=pictoRow(esc(x.label), x.count+' '+plural(x.count,'person','people'), pct, x.count);
   });
   add(9000,'<p class="kicker">Your neighbours</p>'+
     '<p class="big sm-num" data-count="'+P.twinTotal+'">0</p>'+
@@ -291,6 +358,27 @@ addBreak(!!(P.dept || P.project),
     (p.link ? '<p><a class="photolink" href="'+esc(p.link)+'" target="_blank" rel="noopener">See the project’s RecWeek photos →</a></p>' : ''));
 })();
 
+/* ldpTravel — how far they're willing to go for the Leadership Development
+   Program, sat here in "where you fit" rather than act three, because it's a
+   logistics answer about the org (like dept/project) and not a personality
+   fact. `top` is the batch's single most common answer and can be null on a
+   thin sample, so the closing line only appears when the backend actually
+   sent one. */
+if(P.ldpTravel){
+  var lt=P.ldpTravel;
+  add(8000,'<p class="kicker">How far you’ll go <span class="cn">· LDP</span></p>'+
+    '<h2>'+esc(lt.label)+'</h2>'+
+    '<div class="chart">'+chartRow(esc(lt.label), lt.count===1?'only you':lt.pct+'%', lt.pct, 'sky')+'</div>'+
+    '<p class="sm">'+
+      (lt.count===1
+        ? 'Nobody else drew the line where you did for the Leadership Development Program.'
+        : lt.pct+'% of Celaville drew the same line for the Leadership Development Program.')+
+      (lt.top && norm(lt.top.label)!==norm(lt.label)
+        ? ' Most of Celaville said <span class="hl-g">'+esc(lt.top.label)+'</span> ('+lt.top.pct+'%).'
+        : '')+
+    '</p>');
+}
+
 /* ── ACT THREE: what you're like ───────────────────────────────────────*/
 // Every slide in this act needs Membership Survey data. A member who never
 // filled the survey has none of it, and would otherwise get a chapter break
@@ -303,15 +391,24 @@ addBreak(!!(P.mbti || P.familiarity || P.rarest ||
   'Here\u2019s what you\u2019re actually like.',
   'leaf', '\u7b2c\u4e09\u8bfe', 'long meadow');
 
-/* 7 — MBTI */
+/* 7 — MBTI. isRarest (1 of N, no meaningful ratio to meter) keeps the plain
+   headline; everyone else's "% of Celaville shares it" IS a ratio against a
+   whole, so it gets the gauge instead of a restated sentence -- same visual
+   family as donut(), just centered on a ready-made percentage instead of a
+   part/whole pair that needs a denominator spelled out. */
 if(P.mbti && P.mbti.type){
   add(7500,'<p class="kicker">Four letters</p>'+
     '<p class="big">'+esc(P.mbti.type)+'</p>'+
-    '<h2 style="margin-top:12px">'+
-      (P.mbti.isRarest ? 'And nobody else is.' : P.mbti.pct+'% of Celaville shares it.')+'</h2>'+
-    '<p>'+(P.mbti.isRarest
-      ? 'Out of everyone who signed up, the '+esc(P.mbti.type)+' seat in the classroom is yours alone.'
-      : 'That makes it the #'+P.mbti.rank+' most common type here, shared with '+P.mbti.count+' '+plural(P.mbti.count,'other','others')+'.')+'</p>'+
+    (P.mbti.isRarest
+      ? '<h2 style="margin-top:12px">And nobody else is.</h2>'+
+        '<p>Out of everyone who signed up, the '+esc(P.mbti.type)+' seat in the classroom is yours alone.</p>'
+      // Ring itself already says the percentage, so the headline beside it
+      // names the count instead of restating that same number -- the count
+      // is the one thing the ring's own "62%" doesn't say outright.
+      : '<div style="margin-top:14px">'+gauge(P.mbti.pct,
+            P.mbti.count+' '+plural(P.mbti.count,'other','others'),
+            'share your exact type', 'leaf')+'</div>'+
+        '<p>That makes it the #'+P.mbti.rank+' most common type here.</p>')+
     (P.mbti.topType && P.mbti.topType!==P.mbti.type
       ? '<p class="sm">The most common type in Celaville this year is <span class="hl">'+esc(P.mbti.topType)+'</span>.</p>' : ''));
 }
@@ -522,7 +619,7 @@ if(P.checklist){
 /* ── ACT FOUR: what you already did ────────────────────────────────────
    Gated: with no walk-in rows and no mahjong account there is nothing in this
    act, and announcing an empty chapter is worse than no chapter at all. */
-addBreak(!!(P.journey || P.mahjong || (P.interview && P.interview.words)),
+addBreak(!!(P.journey || P.mahjong),
   'Chapter four',
   'Enough about plans.',
   'Here\u2019s what you already showed up for.',
@@ -600,51 +697,6 @@ if(P.mahjong){
     '</p>');
 }
 
-/* 12 — interview, how much you said */
-if(P.interview && P.interview.words){
-  var iv=P.interview;
-  add(7500,'<p class="kicker">In the interview room</p>'+
-    '<p class="big sm-num" data-count="'+iv.words+'">0</p>'+
-    '<h2 style="margin-top:10px">words, across '+iv.answered+' '+plural(iv.answered,'answer')+'</h2>'+
-    '<p>'+(iv.percentile>=70
-      ? 'You talked more than '+iv.percentile+'% of everyone we interviewed. We were writing the whole time.'
-      : iv.percentile<=30
-        ? 'Short and deliberate. You said what you meant, then stopped.'
-        : 'Enough for us to know exactly who walked in.')+'</p>'+
-    (iv.quotePrompt?'<p class="sm">You had the most to say about <span class="hl">'+esc(iv.quotePrompt)+'</span>.</p>':''));
-}
-
-/* 13 — interview, themes */
-if(P.interview && P.interview.themes && P.interview.themes.length){
-  var th=P.interview.themes.map(function(t){
-    return chartRow(esc(t.label), t.count===1?'only you':t.pct+'%', t.pct, 'leaf');
-  }).join('');
-  var rt=P.interview.rarestTheme;
-  add(8000,'<p class="kicker">What you kept coming back to</p>'+
-    '<h2>Your interview, in themes</h2>'+
-    '<p class="sm">Pulled from the words you used, next to how many others reached for the same ones.</p>'+
-    '<div class="chart">'+th+'</div>'+
-    (rt && rt.count<=3 ? '<p class="sm">Almost nobody else brought up <span class="hl">'+esc(rt.label)+'</span>. That one is yours.</p>' : ''));
-}
-
-/* 14 — interview, words only you used */
-if(P.interview && P.interview.distinctive && P.interview.distinctive.length>=3){
-  add(7500,'<p class="kicker">Nobody else said these</p>'+
-    '<h2>'+P.interview.soloWords+' '+plural(P.interview.soloWords,'word')+' only you used</h2>'+
-    '<div class="chips">'+P.interview.distinctive.map(function(w,i){
-      return '<span class="chip '+['coral','sky','leaf','paper'][i%4]+'">'+esc(w)+'</span>';
-    }).join('')+'</div>'+
-    '<p class="sm">Across every interview we ran, these turned up in yours alone.</p>');
-}
-
-/* 15 — interview, your own words */
-if(P.interview && P.interview.quote){
-  add(9000,'<p class="kicker">In your own words</p>'+
-    '<h3 style="opacity:.7;font-size:15px;font-weight:600">On '+esc(P.interview.quotePrompt)+'</h3>'+
-    '<p class="quote">“'+esc(P.interview.quote)+'”</p>'+
-    '<p class="sm">Read this again in March and see how much has changed.</p>');
-}
-
 /* mahjong deep-dive — the wardrobe and the account age. Separate slide so the
    first one stays a clean three-stat hit. */
 if(P.mahjong && (P.mahjong.ownedList.length>1 || P.mahjong.daysSince>0)){
@@ -701,8 +753,8 @@ if(P.mahjong && (P.mahjong.ownedList.length>1 || P.mahjong.daysSince>0)){
   if(P.mahjong) r.push(['Mahjong',P.mahjong.games+' '+plural(P.mahjong.games,'game')+' · '+P.mahjong.coins+' coins']);
   if(P.checklist) r.push(['Starter pack',P.checklist.done+' of '+P.checklist.total+' done']);
   if(P.rarest) r.push(['Rarest answer',P.rarest.label]);
-  if(P.interview&&P.interview.words) r.push(['Interview',P.interview.words+' words'+
-    (P.interview.themes.length?' · '+P.interview.themes[0].label:'')]);
+  if(P.returning) r.push(['Membership',P.returning.label]);
+  if(P.ldpTravel) r.push(['LDP travel',P.ldpTravel.label]);
   r.push(['Your department',P.dept.name]);
   r.push(['Your project',P.project.name]);
   r.push(['Your persona',P.persona.name]);

@@ -56,19 +56,6 @@ function fireworksHTML(){
   return out+'</div>';
 }
 
-/* item 6: the recap's wax-seal thump. A sibling of .inner (like the
-   fireworks above) so it never enters the per-slide entrance stagger --
-   its own CSS animation (styles.css, keyed off .recap.on) is timed to
-   finish right as show()'s existing vibrate([0,14,110,14,240,18]) call
-   below reaches its last buzz, so the visual "thump" and the haptic land
-   together off the SAME moment instead of a second independent timer. */
-function waxSealHTML(){
-  return '<div class="waxseal" aria-hidden="true"><div class="waxseal-face">'+
-    '<span class="ws-l1">Sealed</span>'+
-    '<span class="ws-l2">RecWeek 2026–2027</span>'+
-  '</div></div>';
-}
-
 var slidesEl=document.getElementById('slides'),
     barsEl=document.getElementById('bars'),
     hintEl=document.getElementById('hint'),
@@ -89,7 +76,7 @@ function buildDom(){
     // they'd pick up the per-child entrance stagger
     // (.inner > *:nth-child(n)) and fight it for the transform property on
     // the same element.
-    d.innerHTML='<div class="inner">'+s.html+'</div>'+(isRecap?fireworksHTML()+waxSealHTML():'');
+    d.innerHTML='<div class="inner">'+s.html+'</div>'+(isRecap?fireworksHTML():'');
     slidesEl.appendChild(d);
     var b=document.createElement('div');
     b.className='bar';b.innerHTML='<i></i>';
@@ -212,12 +199,34 @@ var panEls={}, warmEl=null, skyEl=null, walkerEl=null, printsEl=null, villageWra
 /* The walk runs morning -> noon -> golden -> dusk. Keyed off how far along
    the story the reader is rather than off act boundaries, so it still warms
    smoothly for the sparse members whose story is only eight slides long. */
+/* Sunrise through night, not just morning through dusk -- paintVillage's
+   own lerp below is written generically over TOD.length, so extending this
+   array is the entire change; no other math needed to move. Two new stops:
+   sunrise opens the walk on a warm pink dawn instead of straight into pale
+   morning blue, and night closes it in a dusky indigo rather than stopping
+   at dusk's lavender. `warm` keeps doing the same double duty it already
+   does -- it's not really "warmth", it's "how late in the day this is",
+   which is why night's warm is the highest value in the table even though
+   its sky is the coolest-toned: it's what pushes window-glow/stars/
+   fireflies to their most visible state, and night is where all three
+   should be maxed out. */
 var TOD=[
+  {t:'#F7CBAF', b:'#FFF2E4', warm:0.05},  /* sunrise  */
   {t:'#BFE0F3', b:'#FFFCF7', warm:0},     /* morning  */
   {t:'#A9D6EE', b:'#FDFBF6', warm:0.20},  /* midday   */
   {t:'#F0E4CE', b:'#FFFAF2', warm:0.62},  /* golden   */
-  {t:'#CFC6D8', b:'#FBEFE4', warm:0.92}   /* dusk     */
+  {t:'#CFC6D8', b:'#FBEFE4', warm:0.92},  /* dusk     */
+  {t:'#4B4771', b:'#E9DBCF', warm:1}      /* night    */
 ];
+/* Plain channel-wise RGB lerp -- the TOD stops above are all opaque 6-digit
+   hexes, so this doesn't need to handle alpha or short-hex forms. */
+function lerpColor_(a,b,t){
+  var ah=parseInt(a.slice(1),16), bh=parseInt(b.slice(1),16);
+  var ar=(ah>>16)&255, ag=(ah>>8)&255, ab=ah&255;
+  var br=(bh>>16)&255, bg=(bh>>8)&255, bb=bh&255;
+  var r=Math.round(ar+(br-ar)*t), g=Math.round(ag+(bg-ag)*t), bl=Math.round(ab+(bb-ab)*t);
+  return '#'+((1<<24)+(r<<16)+(g<<8)+bl).toString(16).slice(1);
+}
 
 function paintVillage(i,total){
   var p = total>1 ? i/(total-1) : 0;
@@ -247,8 +256,22 @@ function paintVillage(i,total){
     if(!panEls[id]) continue;
     panEls[id].style.setProperty('--pan', (-(travel*PAN_RATE[id]*p)).toFixed(1)+'px');
   }
-  var seg = Math.min(TOD.length-1, Math.floor(p*TOD.length));
-  var tod = TOD[seg];
+  // Continuous blend between the two nearest TOD stops, not a snap to
+  // whichever quarter of the story `p` falls in. The old Math.floor(p*4)
+  // meant three-quarters of the walk held one flat color and all the
+  // change happened in three sudden jumps at the act boundaries -- exactly
+  // the "abrupt" this was flagged for. Blending on `pos`'s fractional part
+  // means every single slide nudges the sky a little, so there's no jump
+  // left for the (now-registered, see styles.css) --tod-top/--tod-bot
+  // transition to paper over -- it's smooth by construction, and the
+  // transition is just there to smooth a big jump (e.g. jumping straight to
+  // slide 0 on replay) rather than carry the whole effect on its own.
+  var pos = p*(TOD.length-1);
+  var seg0 = Math.max(0, Math.min(TOD.length-2, Math.floor(pos)));
+  var segT = pos-seg0;
+  var todA = TOD[seg0], todB = TOD[seg0+1];
+  var tod = { t: lerpColor_(todA.t, todB.t, segT), b: lerpColor_(todA.b, todB.b, segT),
+              warm: todA.warm+(todB.warm-todA.warm)*segT };
   if(skyEl){
     skyEl.style.setProperty('--tod-top', tod.t);
     skyEl.style.setProperty('--tod-bot', tod.b);
@@ -371,6 +394,19 @@ function maybeShowSwipeHint(){
 var PARALLAX_OK = !REDUCED && window.matchMedia &&
   window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 var PARALLAX_RATE = {vclouds:0.35, vfar:0.7, vmid:1.15, vnear:1.7};
+// vnear's horizontal parallax is disabled below (not just here) for a
+// specific reason: paintVillage() sizes its pan distance so vnear's own
+// right edge lands EXACTLY flush with the frame's right edge at the last
+// slide, and exactly flush left at the first -- zero slack on whichever
+// side the story is currently pinned against (that's what fixed the
+// hard-edge "hill cliff" bug earlier in this project). vfar/vmid/vclouds
+// all render comfortably wider than they need to and have real margin on
+// both sides regardless of pan position, so parallax is safe on them. vnear
+// has none: any extra horizontal nudge at either end of the story pulls its
+// edge away from the frame and opens a gap onto whatever's behind it --
+// exactly the "ground looks disconnected/missing" this is guarding against.
+// Vertical parallax has no such constraint (the pan system is purely
+// horizontal), so vnear keeps --pary and only loses --parx.
 var PARALLAX_MAX = 5; // px at the frame edge, before a layer's own rate multiplies it
 function initParallax(){
   if(!PARALLAX_OK) return;
@@ -380,7 +416,8 @@ function initParallax(){
     for(var id in PARALLAX_RATE){
       var layer=document.getElementById(id);
       if(!layer) continue;
-      layer.style.setProperty('--parx', (px*PARALLAX_RATE[id]).toFixed(2)+'px');
+      var xOff = (id==='vnear') ? 0 : px*PARALLAX_RATE[id];
+      layer.style.setProperty('--parx', xOff.toFixed(2)+'px');
       layer.style.setProperty('--pary', (py*PARALLAX_RATE[id]).toFixed(2)+'px');
     }
   }

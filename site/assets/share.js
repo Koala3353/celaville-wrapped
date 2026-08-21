@@ -10,16 +10,24 @@
    the Apps Script sandbox blocks external scripts outright, so a CDN import
    would fail silently in production. Canvas also means the output is a real
    PNG at a fixed 1080x1920 story size regardless of the reader's screen. */
+/* Round 2: each row now carries a `key` (which icon drawStatIcon_ draws) and
+   a `color` (which brand token tints its card) instead of being a bare
+   [label,value] pair -- the old array shape had no slot for either, and
+   pattern-matching the label text back in drawShareCard would have broken
+   the moment a label's wording changed. Object shape, same ordering and same
+   slice(0,5) cap as before. */
 function shareStats(){
   var out=[];
-  if(P.persona) out.push(['Persona', P.persona.name]);
-  if(P.dept) out.push(['Department', P.dept.name]);
-  if(P.rarest) out.push([P.rarest.solo?'Only you picked':'Rarest answer', P.rarest.label]);
-  if(P.journey) out.push(['Showed up', P.journey.totalVisits+'x across '+P.journey.eventCount+' events']);
-  if(P.mahjong && P.mahjong.showRank) out.push(['Mahjong board','#'+P.mahjong.rank+' of '+P.mahjong.playerCount]);
-  if(P.mbti && P.mbti.type) out.push(['Four letters', P.mbti.type+(P.mbti.isRarest?' (one of one)':'')]);
-  if(P.platforms) out.push(['Top platform', P.platforms.top]);
-  if(P.twinTotal) out.push(['Batch overlaps', P.twinTotal+' people']);
+  if(P.persona) out.push({key:'persona', label:'Persona', value:P.persona.name});
+  if(P.dept) out.push({key:'dept', label:'Department', value:P.dept.name, color:'leaf'});
+  if(P.rarest) out.push({key:'rarest', label:(P.rarest.solo?'Only you picked':'Rarest answer'), value:P.rarest.label, color:'coral'});
+  if(P.journey) out.push({key:'journey', label:'Showed up', value:P.journey.totalVisits+'x across '+P.journey.eventCount+' events', color:'sky'});
+  // Explicitly kept: mahjong was called out by name as a section to preserve
+  // through this redesign, not just carried along incidentally.
+  if(P.mahjong && P.mahjong.showRank) out.push({key:'mahjong', label:'Mahjong board', value:'#'+P.mahjong.rank+' of '+P.mahjong.playerCount, color:'yellow'});
+  if(P.mbti && P.mbti.type) out.push({key:'mbti', label:'Four letters', value:P.mbti.type+(P.mbti.isRarest?' (one of one)':''), color:'sage'});
+  if(P.platforms) out.push({key:'platform', label:'Top platform', value:P.platforms.top, color:'peach'});
+  if(P.twinTotal) out.push({key:'twins', label:'Batch overlaps', value:P.twinTotal+' people', color:'sage'});
   return out.slice(0,5);
 }
 
@@ -206,6 +214,70 @@ function drawPostmark_(x,W,H){
   x.restore();
 }
 
+/* #RRGGBB -> rgba(...) string, so a brand hex token can be dropped in at a
+   given alpha for a card wash without keeping a second rgba-triplet copy of
+   every color around just for this. */
+function hexA_(hex,a){
+  var h=String(hex).replace('#','');
+  var r=parseInt(h.substring(0,2),16), g=parseInt(h.substring(2,4),16), b=parseInt(h.substring(4,6),16);
+  return 'rgba('+r+','+g+','+b+','+a+')';
+}
+
+/* One small glyph per stat category (item 4 round 2), so the card reads as
+   four distinct little scenes instead of a uniform label/value list. Each
+   shape is drawn with the same ink-stroke-over-flat-fill language as
+   drawHouse_/drawTree_ above rather than an imported icon font -- there's no
+   font/SVG-sprite dependency this canvas render can reach for anyway. `key`
+   picks the shape; unrecognized/future stat keys fall through to a plain
+   diamond rather than drawing nothing. */
+function drawStatIcon_(x,key,cx,cy,r,fill,ink){
+  x.save();
+  x.lineJoin='round'; x.lineCap='round';
+  x.fillStyle=fill; x.strokeStyle=ink; x.lineWidth=3;
+  if(key==='dept'){
+    // a little roof-and-door house -- department is "where you belong"
+    x.beginPath();
+    x.moveTo(cx-r,cy+r*0.2); x.lineTo(cx,cy-r*0.8); x.lineTo(cx+r,cy+r*0.2);
+    x.lineTo(cx+r*0.68,cy+r*0.2); x.lineTo(cx+r*0.68,cy+r*0.85); x.lineTo(cx-r*0.68,cy+r*0.85);
+    x.lineTo(cx-r*0.68,cy+r*0.2); x.closePath();
+    x.fill(); x.stroke();
+    x.fillStyle=ink;
+    x.fillRect(cx-r*0.15,cy+r*0.32,r*0.3,r*0.5);
+  } else if(key==='rarest'){
+    // an 8-point sparkle -- the "nobody else said this" answer
+    x.beginPath();
+    for(var i=0;i<8;i++){
+      var len=(i%2===0)?r:r*0.42, ang=i*(Math.PI/4)-Math.PI/2;
+      var px=cx+Math.cos(ang)*len, py=cy+Math.sin(ang)*len;
+      if(i===0) x.moveTo(px,py); else x.lineTo(px,py);
+    }
+    x.closePath(); x.fill(); x.stroke();
+  } else if(key==='journey'){
+    // a map pin -- where they showed up
+    x.beginPath();
+    x.moveTo(cx,cy+r);
+    x.bezierCurveTo(cx-r*0.9,cy+r*0.15,cx-r*0.62,cy-r,cx,cy-r);
+    x.bezierCurveTo(cx+r*0.62,cy-r,cx+r*0.9,cy+r*0.15,cx,cy+r);
+    x.closePath(); x.fill(); x.stroke();
+    x.beginPath(); x.arc(cx,cy-r*0.22,r*0.32,0,Math.PI*2);
+    x.fillStyle='#FFFCF7'; x.fill(); x.stroke();
+  } else if(key==='mahjong'){
+    // a mahjong tile with two pips
+    roundRectPath(x,cx-r,cy-r*0.78,r*2,r*1.56,[8,8,8,8]);
+    x.fill(); x.stroke();
+    x.fillStyle=ink;
+    x.beginPath(); x.arc(cx-r*0.36,cy,r*0.17,0,Math.PI*2); x.fill();
+    x.beginPath(); x.arc(cx+r*0.36,cy,r*0.17,0,Math.PI*2); x.fill();
+  } else {
+    // fallback diamond for any stat this redesign didn't specifically design
+    // an icon for (four-letter type, top platform, batch overlaps, ...)
+    x.beginPath();
+    x.moveTo(cx,cy-r); x.lineTo(cx+r,cy); x.lineTo(cx,cy+r); x.lineTo(cx-r,cy);
+    x.closePath(); x.fill(); x.stroke();
+  }
+  x.restore();
+}
+
 function drawShareCard(){
   var W=1080,H=1920;
   var c=document.createElement('canvas'); c.width=W; c.height=H;
@@ -240,35 +312,62 @@ function drawShareCard(){
   x.font='600 38px Montserrat, sans-serif';
   x.fillText((P.name||'')+'’s Wrapped', cx, 436);
 
-  // persona as the hero
+  // persona as the hero -- the redesign's one deliberate focal point, since
+  // it's the most "you" fact on the card. A coral-wash badge sized to the
+  // text (via measureText, so it fits "INTJ" and "The Schoolhouse Scholar"
+  // equally well) sits behind the name, the same roundRectPath language the
+  // outer frame uses at a much smaller scale, so the name reads as THE
+  // headline rather than one more line in a list.
   var y=598;
   if(P.persona){
     x.fillStyle='#5E8F6B';
     x.font='400 96px "Kaiti SC", serif';
-    x.fillText('乡', cx, y); y+=104;
-    x.fillStyle='#4F4036';
+    x.fillText('乡', cx, y); y+=118;
+
     x.font='800 74px Grandstander, sans-serif';
     var pl=wrapText(x,P.persona.name,W-260);
+    var pw=0; pl.forEach(function(l){ pw=Math.max(pw,x.measureText(l).width); });
+    roundRectPath(x, cx-pw/2-36, y-64, pw+72, pl.length*86+40, [26,26,26,26]);
+    x.fillStyle=hexA_('#D94F40',.13); x.fill();
+    x.strokeStyle=hexA_('#D94F40',.4); x.lineWidth=2.5; x.stroke();
+
+    x.fillStyle='#4F4036';
     for(var i=0;i<pl.length;i++){ x.fillText(pl[i],cx,y); y+=86; }
-    y+=34;
+    y+=54;
   }
 
-  // stat rows, left-aligned so the values line up
-  var rows=shareStats().filter(function(r){ return !(P.persona && r[0]==='Persona'); });
+  // stat grid -- one card per category (department / rarest answer / showed
+  // up / mahjong, plus whatever else shareStats() surfaces when one of those
+  // is missing from this member's payload), each with its own icon and
+  // brand-color wash instead of the old uniform dashed label/value rows.
+  // 2 columns because 4 cards is the common case and a 2x2 grid is exactly
+  // that -- an odd 5th card (when mahjong AND one of the lower-priority
+  // stats both make shareStats()'s cut) just leaves the last row half full,
+  // which is a normal grid, not a bug.
+  var rows=shareStats().filter(function(r){ return r.key!=='persona'; });
+  var COLORS={coral:'#D94F40',leaf:'#5E8F6B',sky:'#9FD0EB',yellow:'#E4B64A',sage:'#A8C59A',peach:'#F3BF8D'};
+  var gx=140, gw=W-280, gap=22, colW=(gw-gap)/2, cardH=214;
   x.textAlign='left';
-  var lx=140, rw=W-280;
-  rows.forEach(function(r){
-    x.strokeStyle='#EDE4D4'; x.lineWidth=2; x.setLineDash([8,10]);
-    x.beginPath(); x.moveTo(lx,y-4); x.lineTo(lx+rw,y-4); x.stroke(); x.setLineDash([]);
-    y+=54;
-    x.fillStyle='#6B5D51'; x.font='700 30px Montserrat, sans-serif';
-    x.fillText(String(r[0]).toUpperCase(), lx, y);
-    y+=58;
-    x.fillStyle='#4F4036'; x.font='800 50px Grandstander, sans-serif';
-    var vl=wrapText(x,r[1],rw);
-    for(var j=0;j<vl.length;j++){ x.fillText(vl[j],lx,y); y+=58; }
-    y+=26;
+  rows.forEach(function(r,i){
+    var col=i%2, row=Math.floor(i/2);
+    var bx=gx+col*(colW+gap), by=y+row*(cardH+gap);
+    var tint=COLORS[r.color]||'#6B5D51';
+
+    roundRectPath(x,bx,by,colW,cardH,[20,20,20,20]);
+    x.fillStyle=hexA_(tint,.14); x.fill();
+    x.strokeStyle=hexA_(tint,.55); x.lineWidth=2.5; x.stroke();
+
+    drawStatIcon_(x, r.key, bx+52, by+56, 26, tint, '#4F4036');
+
+    x.fillStyle='#6B5D51'; x.font='700 21px Montserrat, sans-serif';
+    x.fillText(r.label.toUpperCase(), bx+26, by+112);
+
+    x.fillStyle='#4F4036'; x.font='800 33px Grandstander, sans-serif';
+    var vl=wrapText(x,r.value,colW-52).slice(0,2);
+    var vy=by+152;
+    vl.forEach(function(l){ x.fillText(l,bx+26,vy); vy+=39; });
   });
+  y += Math.ceil(rows.length/2)*(cardH+gap) + 6;
 
   // footer -- sits directly over the hill scenery now, so a single fixed
   // text color can't be trusted: measured, coral-on-sage is 2.47:1 and

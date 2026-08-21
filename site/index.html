@@ -497,6 +497,36 @@
     <div id="walker">
 <img src="assets/walker.webp" alt="" aria-hidden="true">
     </div>
+
+    <!-- Fireflies: a sibling of the .vlayer panorama layers, not inside one
+         -- these are meant to read as close to the reader (drifting in the
+         near air), not part of the receding background, so they don't want
+         a pan rate at all. Opacity keyed off the SAME --dusk-glow warm
+         value as the window-glow/stars (styles.css), but starting later in
+         the range than either -- fireflies belong to true dusk/night, not
+         the golden-hour stretch stars already claimed. -->
+    <div class="fireflies" aria-hidden="true">
+      <i style="left:12%;bottom:34%;--d:0s"></i>
+      <i style="left:28%;bottom:22%;--d:.6s"></i>
+      <i style="left:47%;bottom:38%;--d:1.3s"></i>
+      <i style="left:63%;bottom:20%;--d:.3s"></i>
+      <i style="left:78%;bottom:31%;--d:1.7s"></i>
+      <i style="left:90%;bottom:24%;--d:.9s"></i>
+    </div>
+
+    <!-- Floating lanterns: gated to #village.recap-active (the same class
+         initLandmarkTaps() -- app.js -- already toggles for the explorable
+         recap map), so these only ever appear on the last slide, rising
+         slowly past the frame as a closing beat rather than a persistent
+         decoration the reader sees for the whole walk. Reuses the same
+         lantern silhouette already drawn for #lantern up top and for the
+         fw-lantern firework glyph, just bigger, so it reads as the same
+         object rather than a new shape introduced only at the very end. -->
+    <div class="floating-lanterns" aria-hidden="true">
+      <i style="left:14%;--d:0s"></i>
+      <i style="left:52%;--d:1.4s"></i>
+      <i style="left:82%;--d:.7s"></i>
+    </div>
   </div>
   <svg id="lantern" width="26" height="42" viewBox="0 0 30 46" aria-hidden="true">
     <line x1="15" y1="0" x2="15" y2="9" stroke="rgba(79,64,54,.7)" stroke-width="1.5"/>
