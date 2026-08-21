@@ -666,8 +666,18 @@ if(P.mahjong && (P.mahjong.ownedList.length>1 || P.mahjong.daysSince>0)){
    calligraphic tag in the persona's own accent color stands in for one. */
 (function(){
   var pe=P.persona;
+  // item 1: a small signature ambient motif keyed off persona.key (Code.gs's
+  // PERSONAS -- lanternkeeper/ayi/kitemaker/schoolhouse/festivalgoer/
+  // townspeople), nested INSIDE .polaroid rather than as a sibling of it, so
+  // it rides along with .polaroid as a single item in the .inner entrance
+  // stagger instead of claiming a stagger slot of its own. Generic a/b/c
+  // marks so one CSS rule set (styles.css, scoped by the p-amb-<key> class)
+  // decides what each persona's motif actually looks like -- this builder
+  // doesn't need six different markup shapes, just six different looks.
   add(9500,'<p class="kicker">Your Celaville persona</p>'+
-    '<div class="polaroid"><div class="polaroid-card">'+
+    '<div class="polaroid">'+
+      '<div class="p-amb p-amb-'+esc(pe.key)+'" aria-hidden="true"><i class="p-amb-a"></i><i class="p-amb-b"></i><i class="p-amb-c"></i></div>'+
+      '<div class="polaroid-card">'+
       '<div class="tag" style="color:'+pe.color+'">乡</div>'+
       '<div class="pname">'+esc(pe.name)+'</div>'+
       '<div class="peyebrow">Celaville</div>'+

@@ -57,6 +57,27 @@
     <!-- clouds: slowest, so they read as far away -->
     <div class="vlayer" id="vclouds">
       <svg viewBox="0 0 2600 660" width="2600" height="660" preserveAspectRatio="xMinYMid slice">
+        <!-- item 3: a sparse star scatter, sharing the same layer (and pan
+             rate) as the clouds since both are "sky". Opacity is driven by
+             --dusk-glow (styles.css .star rule), the SAME warm value
+             paintVillage() already sets on #village for the window glows --
+             stars stay almost invisible through morning/midday and only
+             fade in across the golden->dusk stretch, never recomputed
+             here. -->
+        <g class="stars" aria-hidden="true">
+          <circle class="star" cx="140" cy="46" r="1.6"/>
+          <circle class="star" cx="410" cy="98" r="1.3"/>
+          <circle class="star" cx="620" cy="24" r="1.7"/>
+          <circle class="star" cx="880" cy="130" r="1.3"/>
+          <circle class="star" cx="1110" cy="52" r="1.6"/>
+          <circle class="star" cx="1350" cy="18" r="1.4"/>
+          <circle class="star" cx="1560" cy="108" r="1.7"/>
+          <circle class="star" cx="1790" cy="40" r="1.3"/>
+          <circle class="star" cx="2010" cy="120" r="1.6"/>
+          <circle class="star" cx="2240" cy="30" r="1.4"/>
+          <circle class="star" cx="2460" cy="96" r="1.7"/>
+          <circle class="star" cx="2560" cy="20" r="1.3"/>
+        </g>
         <!-- Watercolour clouds: small, soft-edged, layered. Two passes per
              cloud (a wide pale base plus a brighter cap) so the edge reads as
              washed rather than cut, without paying for a blur filter on a
@@ -156,12 +177,17 @@
      puts their footings in the hill instead of above it. -->
         <g transform="translate(0,26)">
         <!-- the schoolhouse: act one starts at the gate -->
-<svg x="188" y="8" width="76" height="68" viewBox="0 0 76 68">
+<svg x="188" y="8" width="76" height="68" viewBox="0 0 76 68" class="landmark lm-schoolhouse" data-lm="course">
           <rect x="19" y="31" width="38" height="33" rx="1.5" fill="#FFFCF7" stroke="#4F4036" stroke-width="2" stroke-linejoin="round"/>
           <line x1="16" y1="64" x2="60" y2="64" stroke="#4F4036" stroke-width="2" stroke-linecap="round"/>
           <path d="M 33,64 L 33,51 A 5,5 0 0 1 43,51 L 43,64 Z" fill="#8A6A4E" stroke="#4F4036" stroke-width="2" stroke-linejoin="round"/>
           <circle cx="41" cy="56" r="1" fill="#E4B64A" stroke="#4F4036" stroke-width="1.5"/>
           <rect x="23" y="42" width="7" height="9" rx="1.5" fill="#9FD0EB" stroke="#4F4036" stroke-width="2" stroke-linejoin="round"/>
+          <!-- item 2: the window glow -- a warm rect over the same pane,
+               opacity driven by --dusk-glow (paintVillage(), app.js), so the
+               window reads dark blue by day and lit by dusk without
+               touching the frame lines drawn on top of it below. -->
+          <rect x="23.7" y="42.7" width="5.6" height="7.6" rx="1" class="dusk-glow" fill="#E4B64A"/>
           <line x1="23" y1="46.5" x2="30" y2="46.5" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
           <line x1="26.5" y1="42" x2="26.5" y2="51" stroke="#4F4036" stroke-width="1.5" stroke-linecap="round"/>
           <line x1="21.5" y1="52.5" x2="31.5" y2="52.5" stroke="#4F4036" stroke-width="2" stroke-linecap="round"/>
@@ -223,7 +249,12 @@
           <path d="M 25,5 Q 15,13 5,21.5 Q 25,23.5 45,21.5 Q 35,13 25,5 Z" fill="#E4B64A" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>
         <!-- the mahjong pavilion, where act four picks up -->
-<svg x="1815" y="25" width="90" height="55" viewBox="0 0 90 55">
+<svg x="1815" y="25" width="90" height="55" viewBox="0 0 90 55" class="landmark lm-pavilion" data-lm="mahjong">
+          <!-- item 2: the window glow -- sits under the roof between the
+               pillars, opacity driven by the same --dusk-glow custom
+               property the schoolhouse's glow reads (paintVillage(),
+               app.js), so both landmarks warm on the same clock. -->
+          <ellipse cx="45" cy="32" rx="9" ry="6" class="dusk-glow" fill="#E4B64A"/>
           <line x1="14" y1="44" x2="76" y2="44" stroke="#4F4036" stroke-width="1.8" stroke-linecap="round"/>
           <rect x="20" y="40" width="50" height="4" rx="0.8" fill="#FFFCF7" stroke="#4F4036" stroke-width="1.8" stroke-linejoin="round"/>
           <line x1="31" y1="28" x2="59" y2="28" stroke="#4F4036" stroke-width="1.6" stroke-linecap="round"/>
@@ -362,7 +393,11 @@
         <!-- lantern field: the walk ends here, at dusk.
              Gemini-generated lamppost lanterns (gemini-svg-prompts.md, prompt
              7), 1.3x scale, post foot aligned to the same meadow band the
-             flowers above sit in. -->
+             flowers above sit in. item 5: all six lamps share one tap
+             target (a single data-lm="journey" group) rather than six, since
+             the recap stat this surfaces ("you showed up Nx") is one number
+             for the whole field, not one per lamp. -->
+        <g class="landmark lm-lanterns" data-lm="journey">
         <svg x="2314" y="13" width="26" height="41.6" viewBox="0 0 20 32">
           <line x1="1.5" y1="30" x2="7.5" y2="30" stroke="#4F4036" stroke-width="1.3" stroke-linecap="round"/>
           <rect x="3" y="4" width="2" height="26" rx="0.4" fill="#8A6A4E" stroke="#4F4036" stroke-width="1.2" stroke-linejoin="round"/>
@@ -443,6 +478,7 @@
           <circle cx="13" cy="21.5" r="0.7" fill="#E4B64A" stroke="#4F4036" stroke-width="0.7"/>
           <line x1="13" y1="21.5" x2="13" y2="26.5" stroke="#D94F40" stroke-width="1.3" stroke-linecap="round"/>
         </svg>
+        </g>
       </svg>
     </div>
 

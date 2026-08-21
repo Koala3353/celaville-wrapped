@@ -178,6 +178,34 @@ function drawShareScenery(x,W,H){
   x.restore(); // lifts the clip -- border strokes and text below draw unclipped
 }
 
+/* item 7: a postmark treatment in the card's top-right corner -- a ring of
+   small paper-color "bite" notches following the frame's own top-right
+   corner radius (roundRectPath's r[1]=30 below, same value used for the
+   card outline itself, so the perforation sweeps exactly the arc the ink
+   frame already draws rather than a made-up radius), plus a faint
+   cancellation mark over it. Drawn with the same Path2D-free arc/line calls
+   drawShareScenery already uses, in the existing ink-brown/paper palette --
+   no new colors. Called AFTER the frame strokes below so the notches read
+   as punched through the border, not just laid under it. */
+function drawPostmark_(x,W,H){
+  var r=30, cx=W-46-r, cy=46+r; // top-right corner's own arc center
+  x.save();
+  x.fillStyle='#FFFCF7';
+  var n=8;
+  for(var i=0;i<n;i++){
+    var a=(-88+(i/(n-1))*86)*Math.PI/180; // sweep the top-right quarter arc
+    var px=cx+Math.cos(a)*r, py=cy+Math.sin(a)*r;
+    x.beginPath(); x.arc(px,py,6,0,Math.PI*2); x.fill();
+  }
+  // cancellation mark: a faint ring plus two strike lines, ink-brown at low
+  // alpha so it reads as a postmark ghost, not a competing focal point.
+  x.strokeStyle='rgba(79,64,54,.28)'; x.lineWidth=2;
+  x.beginPath(); x.arc(cx-8,cy+14,24,0,Math.PI*2); x.stroke();
+  x.beginPath(); x.moveTo(cx-46,cy-4); x.lineTo(cx+14,cy+22); x.stroke();
+  x.beginPath(); x.moveTo(cx-40,cy+6); x.lineTo(cx+20,cy+32); x.stroke();
+  x.restore();
+}
+
 function drawShareCard(){
   var W=1080,H=1920;
   var c=document.createElement('canvas'); c.width=W; c.height=H;
@@ -194,6 +222,8 @@ function drawShareCard(){
   x.strokeStyle='#EDE4D4'; x.lineWidth=3; x.setLineDash([10,12]);
   roundRectPath(x,78,78,W-156,H-156,[112,22,104,22]);
   x.stroke(); x.setLineDash([]);
+
+  drawPostmark_(x,W,H);
 
   var cx=W/2;
   x.textAlign='center';

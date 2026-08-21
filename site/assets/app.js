@@ -24,6 +24,18 @@ function vibrate(pattern){
 
 /* Three staggered bursts over the recap's sky. Brand colors only, spoke count
    and radius kept modest -- this is a wink at the finale, not a light show. */
+/* item 4: one brand-shaped glyph per burst, cycling through the three so all
+   three (mahjong tile, dice pips, lantern) show up across the recap's three
+   staggered bursts instead of piling every shape onto every burst -- same
+   "wink, not a light show" restraint as the dot spokes above. The plain
+   colored-dot spokes are untouched and stay the prefers-reduced-motion
+   fallback (styles.css hides .fw-glyph entirely under reduced motion, same
+   as the existing .fw i reduced-motion rule already does for the spokes). */
+var FW_GLYPHS=[
+  {cls:'fw-tile', ang:38},
+  {cls:'fw-dice', ang:154},
+  {cls:'fw-lantern', ang:272}
+];
 function fireworksHTML(){
   var BURSTS=[
     {x:22, y:20, colors:['#D94F40','#E4B64A'], delay:0},
@@ -31,15 +43,30 @@ function fireworksHTML(){
     {x:50, y:28, colors:['#E4B64A','#D94F40'], delay:.7},
   ];
   var out='<div class="fireworks" aria-hidden="true">';
-  BURSTS.forEach(function(b){
+  BURSTS.forEach(function(b,bi){
     var spokes='', n=10;
     for(var i=0;i<n;i++){
       var ang=(360/n*i)+'deg', c=b.colors[i%b.colors.length], d=(b.delay+i*0.012).toFixed(3);
       spokes+='<i style="--ang:'+ang+';--c:'+c+';--d:'+d+'s"></i>';
     }
-    out+='<div class="fw" style="left:'+b.x+'%;top:'+b.y+'%">'+spokes+'</div>';
+    var g=FW_GLYPHS[bi%FW_GLYPHS.length];
+    var glyph='<i class="fw-glyph '+g.cls+'" style="--ang:'+g.ang+'deg;--d:'+(b.delay+0.05).toFixed(3)+'s"></i>';
+    out+='<div class="fw" style="left:'+b.x+'%;top:'+b.y+'%">'+spokes+glyph+'</div>';
   });
   return out+'</div>';
+}
+
+/* item 6: the recap's wax-seal thump. A sibling of .inner (like the
+   fireworks above) so it never enters the per-slide entrance stagger --
+   its own CSS animation (styles.css, keyed off .recap.on) is timed to
+   finish right as show()'s existing vibrate([0,14,110,14,240,18]) call
+   below reaches its last buzz, so the visual "thump" and the haptic land
+   together off the SAME moment instead of a second independent timer. */
+function waxSealHTML(){
+  return '<div class="waxseal" aria-hidden="true"><div class="waxseal-face">'+
+    '<span class="ws-l1">Sealed</span>'+
+    '<span class="ws-l2">RecWeek 2026–2027</span>'+
+  '</div></div>';
 }
 
 var slidesEl=document.getElementById('slides'),
@@ -62,7 +89,7 @@ function buildDom(){
     // they'd pick up the per-child entrance stagger
     // (.inner > *:nth-child(n)) and fight it for the transform property on
     // the same element.
-    d.innerHTML='<div class="inner">'+s.html+'</div>'+(isRecap?fireworksHTML():'');
+    d.innerHTML='<div class="inner">'+s.html+'</div>'+(isRecap?fireworksHTML()+waxSealHTML():'');
     slidesEl.appendChild(d);
     var b=document.createElement('div');
     b.className='bar';b.innerHTML='<i></i>';
@@ -112,7 +139,66 @@ function buildDom(){
   });
   warmEl=document.getElementById('vwarm'); skyEl=document.getElementById('vsky');
   walkerEl=document.getElementById('walker'); printsEl=document.getElementById('prints');
+  villageWrap=document.getElementById('village');
   initParallax();
+  initLandmarkTaps();
+}
+
+/* ── item 5: explorable recap map ─────────────────────────────────────────
+   The schoolhouse, mahjong pavilion and lantern field are plain decorative
+   SVG inside #village (pointer-events:none by default, see styles.css) for
+   every other slide. Only while the recap is on screen does #village gain
+   .recap-active, which is the ONLY thing that flips .landmark's own
+   pointer-events back to auto (styles.css) -- so this tap surface exists
+   nowhere else in the deck. One delegated listener on #village (rather than
+   one per landmark) since buildFence()-style per-shape wiring would have to
+   run again every time the walk's panorama markup changed. */
+var LANDMARK_TIP_MS=2600;
+function landmarkStatText(key){
+  if(key==='course' && P.basics && P.basics.course){
+    return 'Your course: '+esc(P.basics.course)+(P.basics.courseIsSolo?' · only you':' · '+P.basics.coursePct+'% of Celaville');
+  }
+  if(key==='mahjong' && P.mahjong){
+    return 'Mahjong: '+P.mahjong.games+' '+plural(P.mahjong.games,'game')+' · '+P.mahjong.coins+' coins';
+  }
+  if(key==='journey' && P.journey){
+    return 'You showed up '+P.journey.totalVisits+'x, '+P.journey.eventCount+' of '+P.journey.totalEvents+' events';
+  }
+  return null;
+}
+var landmarkTip=null, landmarkTipT=null;
+function showLandmarkTip(lm){
+  var text=landmarkStatText(lm.getAttribute('data-lm'));
+  if(!text) return;
+  // the tap affordance itself: retrigger the glow/scale pulse even on a
+  // second tap of the same landmark, the same force-reflow trick buildFence's
+  // neighbours (countUp/animateDonuts) already use elsewhere in this file.
+  lm.classList.remove('lm-tap'); void lm.getBoundingClientRect(); lm.classList.add('lm-tap');
+  if(!landmarkTip){
+    landmarkTip=document.createElement('div');
+    landmarkTip.className='lm-tip';
+    landmarkTip.setAttribute('aria-live','polite');
+    frameEl.appendChild(landmarkTip);
+  }
+  landmarkTip.textContent=text;
+  landmarkTip.classList.remove('show'); void landmarkTip.offsetWidth; landmarkTip.classList.add('show');
+  clearTimeout(landmarkTipT);
+  landmarkTipT=setTimeout(function(){ landmarkTip.classList.remove('show'); }, LANDMARK_TIP_MS);
+}
+function initLandmarkTaps(){
+  if(!villageWrap) return;
+  // Listens on #village, which sits BETWEEN the tapped landmark and #frame in
+  // the DOM (index.html), so this fires and can stopPropagation() before
+  // frameEl's own click handler (tap-left-third/right-two-thirds nav) ever
+  // sees the event -- but only when the recap is actually on screen; every
+  // other slide lets the click bubble straight through untouched.
+  villageWrap.addEventListener('click', function(e){
+    if(!villageWrap.classList.contains('recap-active')) return;
+    var lm=e.target.closest('.landmark');
+    if(!lm) return;
+    e.stopPropagation();
+    showLandmarkTip(lm);
+  });
 }
 
 /* ── walking through the village ──────────────────────────────────────────
@@ -121,7 +207,7 @@ function buildDom(){
    the slides maps straight onto that distance, and each layer covers a
    fraction of it so nearer things sweep past faster. */
 var VILLAGE_W=2600, PAN_RATE={vclouds:0.20, vfar:0.45, vmid:0.75, vnear:1.00};
-var panEls={}, warmEl=null, skyEl=null, walkerEl=null, printsEl=null;
+var panEls={}, warmEl=null, skyEl=null, walkerEl=null, printsEl=null, villageWrap=null;
 
 /* The walk runs morning -> noon -> golden -> dusk. Keyed off how far along
    the story the reader is rather than off act boundaries, so it still warms
@@ -168,6 +254,12 @@ function paintVillage(i,total){
     skyEl.style.setProperty('--tod-bot', tod.b);
   }
   if(warmEl) warmEl.style.setProperty('--warm', tod.warm);
+  // items 2/3: the SAME warm value #vwarm's wash already reads, exposed one
+  // level up on #village itself so the window-glow circles planted in the
+  // schoolhouse/pavilion SVGs (index.html) and the sky's star scatter can
+  // read it via CSS custom-property inheritance -- neither of them needs
+  // paintVillage to compute anything a second time.
+  if(villageWrap) villageWrap.style.setProperty('--dusk-glow', tod.warm);
   /* One footprint per step already taken, laid down behind her. */
   if(printsEl){
     var want=Math.min(i,9);
@@ -349,6 +441,10 @@ function show(i){
     }
     // Full-bleed act breaks need light frame chrome (see #frame.on-break).
     frameEl.classList.toggle('on-break', isBreak);
+    // item 5: the ONLY thing that turns the landmark SVGs' pointer-events
+    // back on (styles.css) -- see initLandmarkTaps() above for why gating it
+    // here, rather than leaving them always-tappable, matters.
+    if(villageWrap) villageWrap.classList.toggle('recap-active', i===S.length-1);
     paintVillage(i, S.length);
     CelavilleAPI.ping(TOK, i+1, S.length);
     slideEls[i].scrollTop=0;
@@ -628,7 +724,7 @@ function setThemeColor(hex){
    spinning clouds. */
 var loaderEl=document.getElementById('loader');
 var LOAD_MIN=3000; // keep in sync with the 3s in .ldr-bar > i's animation
-var RUSH_MS=900;   // keep in sync with .ldr-rush's .9s animation
+var RUSH_MS=1100;  // keep in sync with .ldr-rush's 1.1s animation
 
 function showLoaderError(message){
   if(!loaderEl) return;

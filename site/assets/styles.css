@@ -169,6 +169,32 @@ body.paused .bar.active > i{animation-play-state:paused}
   background:linear-gradient(var(--tod-top) 0%, var(--tod-bot) 70%);
   transition:background 1.6s var(--ease);
 }
+/* ── items 2/3: dusk-driven landmark glow + stars ─────────────────────────
+   paintVillage() (app.js) sets --dusk-glow on #village itself, the SAME
+   `warm` value #vwarm's own wash already reads (0 at morning -> ~0.92 at
+   dusk) -- these two rules are the only consumers, so nothing here
+   recomputes time-of-day on its own. */
+/* Window-glow circles/rects planted inside the schoolhouse and mahjong
+   pavilion SVGs (index.html, class="dusk-glow"). Low-opacity by day so the
+   window still reads as its base color (sky blue / roof-line ellipse), then
+   warms toward the brand yellow as the walk reaches dusk. */
+#village .dusk-glow{
+  opacity:calc(.05 + var(--dusk-glow,0) * .85);
+  transition:opacity 1.6s var(--ease);
+}
+/* Sparse sky stars (index.html, #vclouds). Mapped to only the TOP ~40% of
+   the warm range: clamp(0,...,1) keeps them at 0 through morning/midday and
+   ramps them in from golden hour to fully visible by dusk, rather than
+   fading in lockstep with the ground-level window glow above. */
+.star{
+  fill:#FFFCF7;
+  opacity:clamp(0, calc((var(--dusk-glow,0) - .55) * 2.6), 1);
+  transition:opacity 1.6s var(--ease);
+}
+@media(prefers-reduced-motion:reduce){
+  #village .dusk-glow,.star{transition:none}
+}
+
 /* Golden-hour / dusk warmth. A separate layer so only its opacity animates. */
 /* Golden hour / dusk warmth. Deliberately confined to the bottom of the frame
    and faded to nothing going up: an earlier version covered the whole frame and
@@ -246,6 +272,40 @@ body.paused #walker{animation-play-state:paused}
   #walker{animation:none}
   #prints i{animation:none}
   #vsky,#vwarm{transition:none}
+}
+
+/* ── item 5: explorable recap map ─────────────────────────────────────────
+   .landmark stays pointer-events:none (its default, inherited from
+   #village) everywhere in the deck EXCEPT while #village carries
+   .recap-active (toggled by show(), app.js, only for the last slide) --
+   that's the entire gate that keeps this tap surface from existing on any
+   other slide. */
+.landmark{pointer-events:none;transform-box:fill-box;transform-origin:50% 100%;transition:filter .25s var(--ease)}
+#village.recap-active .landmark{pointer-events:auto;cursor:pointer}
+.landmark.lm-tap{animation:lm-pulse .5s var(--ease)}
+@keyframes lm-pulse{
+  0%{transform:scale(1);filter:none}
+  45%{transform:scale(1.14);filter:drop-shadow(0 0 9px rgba(228,182,74,.85))}
+  100%{transform:scale(1);filter:none}
+}
+/* The one-line stat surfaced on tap. Anchored to #frame (not #village,
+   which is pointer-events:none) so it floats above the ground scene
+   regardless of which layer the tapped landmark actually lives in. */
+.lm-tip{
+  position:absolute;left:50%;bottom:64px;z-index:15;
+  transform:translate(-50%,6px);
+  max-width:80%;
+  background:rgba(79,64,54,.90);color:#fff;
+  font-family:'Montserrat';font-size:13px;font-weight:700;line-height:1.35;
+  padding:9px 16px;border-radius:40px 10px 36px 10px/10px 36px 10px 40px;
+  text-align:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s var(--ease),transform .25s var(--ease);
+}
+.lm-tip.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){
+  .landmark{transition:none}
+  .lm-tip{transition:none}
 }
 
 /* ── slides ──────────────────────────────────────────────── */
@@ -762,6 +822,80 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
 .polaroid .peyebrow{font-family:'Montserrat';font-size:10.5px;font-weight:700;letter-spacing:.2em;
   text-transform:uppercase;color:var(--muted);margin-top:6px}
 
+/* ── item 1: persona ambient motifs ───────────────────────────────────────
+   One small signature decoration behind the polaroid, keyed off
+   persona.key (slides.js reads it straight off P.persona -- Code.gs's
+   PERSONAS array is the source of truth for the six keys below). Nested
+   inside .polaroid so it rides along in .polaroid's own entrance-stagger
+   slot instead of claiming one of its own, and sits at z-index:-1 so it
+   never sits over the card's own ink border. CSS-animation only, no JS
+   raf loop -- the global reduced-motion rule earlier in this file
+   (*{animation-duration:.01ms...}) is the same REDUCED fallback every other
+   ambient loop here already relies on, so nothing extra is needed below. */
+.p-amb{position:absolute;inset:-34px;z-index:-1;pointer-events:none;overflow:visible}
+.p-amb i{position:absolute;display:block}
+
+/* lanternkeeper: a slow pulsing lantern glow behind the card */
+.p-amb-lanternkeeper .p-amb-a{
+  left:50%;top:40%;width:190px;height:190px;margin:-95px 0 0 -95px;border-radius:50%;
+  background:radial-gradient(circle,rgba(217,79,64,.34),rgba(217,79,64,0) 70%);
+  animation:amb-pulse 3.2s ease-in-out infinite;
+}
+@keyframes amb-pulse{0%,100%{opacity:.5;transform:scale(.92)}50%{opacity:1;transform:scale(1.06)}}
+
+/* ayi: the mascot herself, so this one reads warmer/brighter than the
+   others -- a soft highlight sweeping across on top of its own glow */
+.p-amb-ayi .p-amb-a{
+  left:50%;top:46%;width:230px;height:230px;margin:-115px 0 0 -115px;border-radius:50%;
+  background:radial-gradient(circle,rgba(228,182,74,.4),rgba(228,182,74,0) 68%);
+  animation:amb-pulse 2.6s ease-in-out infinite;
+}
+.p-amb-ayi .p-amb-b{
+  left:-10%;top:0;width:60%;height:100%;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,252,247,.55) 48%,transparent 66%);
+  animation:amb-shimmer 3.4s ease-in-out infinite;
+}
+@keyframes amb-shimmer{0%{transform:translateX(-40%)}100%{transform:translateX(220%)}}
+
+/* kitemaker: a small kite silhouette drifting side to side overhead */
+.p-amb-kitemaker .p-amb-a{
+  left:50%;top:-4%;width:32px;height:42px;margin-left:-16px;
+  background:var(--sky);clip-path:polygon(50% 0,100% 38%,50% 100%,0 38%);
+  opacity:.65;animation:amb-drift 5s ease-in-out infinite;
+}
+@keyframes amb-drift{0%,100%{transform:translate(-44px,0) rotate(-6deg)}50%{transform:translate(44px,-10px) rotate(6deg)}}
+
+/* schoolhouse: chalk-dust motes drifting up off the polaroid's bottom edge */
+.p-amb-schoolhouse .p-amb-a,
+.p-amb-schoolhouse .p-amb-b,
+.p-amb-schoolhouse .p-amb-c{
+  width:4.5px;height:4.5px;border-radius:50%;background:rgba(255,252,247,.9);
+  bottom:8%;animation:amb-chalk 3.6s ease-in infinite;
+}
+.p-amb-schoolhouse .p-amb-a{left:30%;animation-delay:0s}
+.p-amb-schoolhouse .p-amb-b{left:50%;animation-delay:1.1s}
+.p-amb-schoolhouse .p-amb-c{left:68%;animation-delay:2.2s}
+@keyframes amb-chalk{0%{opacity:0;transform:translateY(0)}30%{opacity:.75}100%{opacity:0;transform:translateY(-64px)}}
+
+/* festivalgoer: a few drifting dice-pip / confetti dots */
+.p-amb-festivalgoer .p-amb-a,
+.p-amb-festivalgoer .p-amb-b,
+.p-amb-festivalgoer .p-amb-c{
+  width:7px;height:7px;border-radius:2px;top:-3%;
+  animation:amb-confetti 4.2s ease-in infinite;
+}
+.p-amb-festivalgoer .p-amb-a{left:22%;background:var(--coral);animation-delay:0s}
+.p-amb-festivalgoer .p-amb-b{left:50%;background:var(--yellow);border-radius:50%;animation-delay:1.3s}
+.p-amb-festivalgoer .p-amb-c{left:76%;background:var(--leaf);animation-delay:2.6s}
+@keyframes amb-confetti{0%{opacity:0;transform:translateY(0) rotate(0)}18%{opacity:.85}100%{opacity:0;transform:translateY(150px) rotate(140deg)}}
+
+/* townspeople: a subtle warm village-glow wash behind the whole card */
+.p-amb-townspeople .p-amb-a{
+  left:50%;top:50%;width:250px;height:250px;margin:-125px 0 0 -125px;border-radius:50%;
+  background:radial-gradient(circle,rgba(94,143,107,.24),rgba(228,182,74,.14) 55%,transparent 75%);
+  animation:amb-pulse 4.4s ease-in-out infinite;
+}
+
 /* recap */
 .recap .card{margin-bottom:9px;padding:12px 15px}
 
@@ -794,6 +928,86 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
   /* Motion off, not delight off: spokes land fully extended and dimmed,
      so the burst still reads as a burst -- just held still. */
   .fw i{animation:none;opacity:.6;transform:rotate(var(--ang)) translateY(-42px) scale(1)}
+}
+
+/* ── item 4: brand-shaped firework glyphs ─────────────────────────────────
+   One extra tip per burst (app.js's fireworksHTML(), FW_GLYPHS), riding the
+   same rotate+translate spoke technique as the plain dots above but drawn
+   as a tiny mahjong tile / dice pips / lantern instead of a flat color dot
+   -- things this org's own data tracks, not generic confetti glyphs. */
+.fw-glyph{
+  position:absolute;left:0;top:0;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;
+  opacity:0;
+  transform:rotate(var(--ang)) translateY(0) scale(.5);
+  animation:fwglyph 1.05s cubic-bezier(.19,1,.22,1) both;
+  animation-delay:var(--d,0s);
+}
+@keyframes fwglyph{
+  0%{opacity:0;transform:rotate(var(--ang)) translateY(0) scale(.5)}
+  20%{opacity:1}
+  100%{opacity:0;transform:rotate(var(--ang)) translateY(-46px) scale(1)}
+}
+/* mahjong tile: a small ink-bordered rectangle with one coral pip */
+.fw-tile{background:#FFFCF7;border:1.1px solid var(--ink-strong);border-radius:2px}
+.fw-tile::after{content:'';position:absolute;left:2.8px;top:2.8px;width:5px;height:5px;border-radius:50%;background:var(--coral)}
+/* dice pips: three dots on a small square face, diagonal arrangement */
+.fw-dice{background:#FFFCF7;border:1.1px solid var(--ink-strong);border-radius:2px}
+.fw-dice::before,.fw-dice::after{content:'';position:absolute;width:1.8px;height:1.8px;border-radius:50%;background:var(--ink)}
+.fw-dice::before{left:1.8px;top:1.8px}
+.fw-dice::after{right:1.8px;bottom:1.8px}
+/* lantern: a small rounded coral body with a yellow cap, echoing #lantern */
+.fw-lantern{background:var(--coral);border:1px solid var(--ink-strong);
+  border-radius:40% 40% 55% 55%/50% 50% 62% 62%}
+.fw-lantern::before{content:'';position:absolute;left:1.5px;top:-2px;width:8px;height:2.2px;background:var(--yellow);border-radius:2px}
+@media(prefers-reduced-motion:reduce){
+  /* Per the brief: the shapes add real motion complexity on top of the
+     spoke rotation, so under reduced motion they drop out entirely and the
+     plain color-dot spokes above (already their own reduced-motion rule)
+     stand alone as the finale. */
+  .fw-glyph{display:none}
+}
+
+/* ── item 6: the recap's wax-seal thump ───────────────────────────────────
+   A sibling of .inner (app.js's buildDom(), like .fireworks above), timed to
+   land with show()'s existing vibrate([0,14,110,14,240,18]) call rather than
+   a second independent timer: that pattern's own last buzz lands at 378ms
+   and finishes at 396ms, so the thump's own animation-duration below is
+   tuned to settle at ~390ms -- the same moment, off the same show() call. */
+.waxseal{
+  position:absolute;right:6%;top:8%;z-index:3;pointer-events:none;
+  opacity:0;transform:scale(.4) rotate(-14deg);
+}
+/* Reserves the seal's own corner so it lands beside the recap's name+"'s
+   Celaville Wrapped" heading rather than on top of it -- caught in-browser
+   at a short frame height, where the heading runs the full card width and
+   the seal's top-right position otherwise sat directly over its text. */
+.recap .inner h2{padding-right:104px}
+.waxseal-face{
+  width:112px;height:112px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,#E86A5B,var(--coral-onwhite) 60%,#A8402F 100%);
+  border:3px solid rgba(79,64,54,.55);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;color:#fff;
+  box-shadow:0 10px 20px rgba(61,50,42,.28),inset 0 2px 6px rgba(0,0,0,.18);
+}
+.ws-l1{font-family:'Grandstander';font-weight:800;font-size:15px;line-height:1;text-transform:uppercase;letter-spacing:.03em}
+.ws-l2{font-family:'Montserrat';font-weight:700;font-size:8px;letter-spacing:.07em;margin-top:4px;opacity:.92}
+.slide.recap.on .waxseal{
+  animation:ws-thump .39s cubic-bezier(.24,1.6,.4,1) forwards;
+}
+@keyframes ws-thump{
+  0%{opacity:0;transform:scale(.4) rotate(-14deg)}
+  65%{opacity:1;transform:scale(1.12) rotate(4deg)}
+  100%{opacity:1;transform:scale(1) rotate(-4deg)}
+}
+@media(prefers-reduced-motion:reduce){
+  .slide.recap.on .waxseal{animation:none;opacity:1;transform:scale(1) rotate(-4deg)}
+}
+@container fr (max-height:780px){
+  .waxseal-face{width:92px;height:92px}
+  .ws-l1{font-size:13px}
+  .ws-l2{font-size:7px}
+  .recap .inner h2{padding-right:86px}
 }
 
 /* The wobbly ink outline lives on a ::before overlay, not on .btn itself --
@@ -950,33 +1164,49 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
    all rushing upward past the frame at once. Reads as falling down out of
    the sky rather than "content faded, new content faded in": show(0) has
    already settled the ground scene behind by the time these start (see the
-   script), so what the reader sees is clouds parting onto solid ground. */
+   script), so what the reader sees is clouds parting onto solid ground.
+   Second pass on this: the first version had two problems that both landed
+   as "looks like clouds rising off the ground, not falling from the sky" --
+   (1) the clouds stayed small and scattered, never actually covering the
+   frame, so there was no "inside a cloud, then it clears" beat, just puffs
+   drifting past an otherwise-static screen; (2) the loader's own sky and
+   slide zero's sky are the same pale blue, so nothing visually marked "this
+   is a different place we came from" -- the eye had no contrast to read
+   motion against. The keyframe below now bulges each puff to ~2x scale
+   around the middle of its flight (not just shrinking-while-rising), so the
+   staggered puffs overlap into a genuine near-whiteout for a beat before
+   they thin out and clear -- that whiteout IS the "passing through a cloud
+   layer" cue that was missing. */
 .ldr-rush{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .ldr-rush i{position:absolute;bottom:-20%;border-radius:99px;background:#fff;opacity:0}
 .ldr-rush i::before,.ldr-rush i::after{content:'';position:absolute;background:#fff;border-radius:99px}
 .ldr-rush i::before{width:60%;height:60%;top:-35%;left:12%}
 .ldr-rush i::after{width:45%;height:45%;top:-22%;right:10%}
-#loader.done .ldr-rush i{animation:ldr-rush .9s cubic-bezier(.32,0,.6,1) forwards}
+#loader.done .ldr-rush i{animation:ldr-rush 1.1s cubic-bezier(.32,0,.6,1) forwards}
 @keyframes ldr-rush{
   0%{opacity:0;transform:translateY(0) scale(.85)}
-  10%{opacity:1}
-  100%{opacity:0;transform:translateY(-760%) scale(1.35)}
+  9%{opacity:1}
+  42%{opacity:1;transform:translateY(-260%) scale(2.05)}  /* the whiteout beat */
+  100%{opacity:0;transform:translateY(-780%) scale(1.15)}
 }
 /* The ground rushing up to meet the reader -- without this, clouds sliding
    up past a scene that never moves reads as "clouds rising off the ground"
-   (that was the actual complaint) instead of "falling toward the ground".
-   Applied to #village and to slide zero at the same moment as the rush:
-   both start pulled in slightly small/low, like they're still a beat below,
-   then grow to their resting size and position as the clouds clear -- the
+   instead of "falling toward the ground". Applied to #village and to slide
+   zero at the same moment as the rush: both start pulled in small/low and
+   soft-focused, like they're still a beat below and far away, then grow to
+   their resting size, position, and sharpness as the clouds clear -- the
    ground closing the distance, not the sky just peeling back off a static
-   scene. transform-origin low so growth reads as "coming up", not "zooming
-   in on the middle of the frame". */
+   scene. Scale/blur delta increased in this pass (.9->1 read as barely more
+   than a shrug in motion; .68->1 plus a real blur-to-sharp resolve is what
+   actually sells "closing a big distance fast"). transform-origin low so
+   growth reads as "coming up", not "zooming in on the middle of the frame". */
 .ldr-fall{
-  transform:scale(.9) translateY(3.5%);
+  transform:scale(.68) translateY(6%);
+  filter:blur(7px);
   transform-origin:50% 78%;
-  transition:transform .9s cubic-bezier(.16,1,.3,1);
+  transition:transform 1.1s cubic-bezier(.16,1,.3,1), filter 1.1s cubic-bezier(.16,1,.3,1);
 }
-.ldr-fall.ldr-land{transform:scale(1) translateY(0)}
+.ldr-fall.ldr-land{transform:scale(1) translateY(0);filter:blur(0)}
 @media(prefers-reduced-motion:reduce){
   .ldr-cloud{animation:none}
   .ldr-walker{animation:none}
@@ -986,7 +1216,7 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
   .ldr-content{transition:none}
   .ldr-sky{transition:none}
   .ldr-rush i{display:none}
-  .ldr-fall{transform:none;transition:none}
+  .ldr-fall{transform:none;filter:none;transition:none}
 }
 
 /* ── nav ─────────────────────────────────────────────────── */
