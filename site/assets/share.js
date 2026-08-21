@@ -137,6 +137,128 @@ function drawPicket_(x,ox,oy,scale){
   x.restore();
 }
 
+/* Cloud cluster, kite, small background house (3 roof-color variants), the
+   open-sided mahjong pavilion, and a lantern-on-post -- all copied from the
+   exact Gemini asset markup already inlined in #village (index.html), the
+   same "real path data via Path2D, not a canvas reinterpretation" rule
+   drawHouse_/drawTree_/drawPicket_ above already follow. */
+function drawCloudAsset_(x,ox,oy,scale){
+  x.save(); x.translate(ox,oy); x.scale(scale,scale);
+  x.fillStyle='#FFFCF7';
+  x.beginPath(); x.ellipse(9,27,4,2.2,0,0,Math.PI*2); x.fill();
+  x.beginPath(); x.ellipse(83,22,3.5,2,0,0,Math.PI*2); x.fill();
+  x.fill(new Path2D('M 15,27 C 10,27 9,23 13,22 C 13,17.5 18,15.5 23,17.5 C 26,11.5 34,9.5 40,12.5 C 45,6.5 55,6.5 60,11.5 C 66,8.5 74,11.5 76,16.5 C 81,16.5 85,20.5 83,25.5 C 81,29.5 75,30.5 71,27.5 C 66,31.5 57,31.5 51,28.5 C 45,32.5 35,32.5 30,28.5 C 25,30.5 19,30.5 15,27 Z'));
+  x.restore();
+}
+function drawKiteAsset_(x,ox,oy,scale){
+  x.save(); x.translate(ox,oy); x.scale(scale,scale);
+  x.lineJoin='round'; x.lineCap='round';
+  var ink='#4F4036';
+  function seg(x1,y1,x2,y2,sw){ x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2);
+    x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke(); }
+  function tri(pts,fill){
+    x.beginPath();
+    pts.forEach(function(p,i){ if(i) x.lineTo(p[0],p[1]); else x.moveTo(p[0],p[1]); });
+    x.closePath(); x.fillStyle=fill; x.fill(); x.strokeStyle=ink; x.lineWidth=0.9/scale; x.stroke();
+  }
+  svgPath_(x,'M 15,23 C 11,32 6,43 2,54','none',ink,1,scale,scale);
+  svgPath_(x,'M 21,28 C 17,33 13,36 17,41 C 21,46 15,50 12,53','none',ink,1.1,scale,scale);
+  seg(24.2,9,15,23,0.9); seg(21.8,23,15,23,0.9);
+  tri([[18,33],[13,31.5],[15,36]],'#E4B64A');
+  tri([[16,39],[21,37.5],[19,42]],'#D94F40');
+  tri([[18.5,44],[14,45.5],[16.5,48.5]],'#5E8F6B');
+  tri([[14,50.5],[18.5,51.5],[15,54.5]],'#E4B64A');
+  tri([[25,4],[10,15],[23,16]],'#D94F40');
+  tri([[25,4],[36,17],[23,16]],'#FFFCF7');
+  tri([[21,28],[36,17],[23,16]],'#D94F40');
+  tri([[21,28],[10,15],[23,16]],'#FFFCF7');
+  x.beginPath(); x.moveTo(25,4); x.lineTo(36,17); x.lineTo(21,28); x.lineTo(10,15); x.closePath();
+  x.strokeStyle=ink; x.lineWidth=1.4/scale; x.stroke();
+  seg(25,4,21,28,1.1); seg(10,15,36,17,1.1);
+  x.restore();
+}
+function drawSmallHouseAsset_(x,ox,oy,scale,roof){
+  x.save(); x.translate(ox,oy); x.scale(scale,scale);
+  x.lineJoin='round'; x.lineCap='round';
+  var ink='#4F4036';
+  function rrect(rx,ry,rw,rh,rr,fill,sw){
+    x.beginPath(); x.moveTo(rx+rr,ry); x.lineTo(rx+rw-rr,ry); x.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rr);
+    x.lineTo(rx+rw,ry+rh-rr); x.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rr,ry+rh);
+    x.lineTo(rx+rr,ry+rh); x.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rr);
+    x.lineTo(rx,ry+rr); x.quadraticCurveTo(rx,ry,rx+rr,ry); x.closePath();
+    x.fillStyle=fill; x.fill(); x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke();
+  }
+  function seg(x1,y1,x2,y2,sw){ x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2);
+    x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke(); }
+  rrect(12,21,26,21,1,'#FFFCF7',1.8);
+  seg(9,42,41,42,1.8);
+  svgPath_(x,'M 22,42 L 22,33 A 3,3 0 0 1 28,33 L 28,42 Z','#8A6A4E',ink,1.8,scale,scale);
+  rrect(14.5,27,5,5.5,0.8,'#9FD0EB',1.5);
+  seg(14.5,29.75,19.5,29.75,1.2); seg(17,27,17,32.5,1.2);
+  svgPath_(x,'M 25,5 Q 15,13 5,21.5 Q 25,23.5 45,21.5 Q 35,13 25,5 Z',roof,ink,1.8,scale,scale);
+  x.restore();
+}
+function drawPavilionAsset_(x,ox,oy,scale){
+  x.save(); x.translate(ox,oy); x.scale(scale,scale);
+  x.lineJoin='round'; x.lineCap='round';
+  var ink='#4F4036';
+  function seg(x1,y1,x2,y2,sw){ x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2);
+    x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke(); }
+  function rrect(rx,ry,rw,rh,rr,fill,sw){
+    x.beginPath(); x.moveTo(rx+rr,ry); x.lineTo(rx+rw-rr,ry); x.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rr);
+    x.lineTo(rx+rw,ry+rh-rr); x.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rr,ry+rh);
+    x.lineTo(rx+rr,ry+rh); x.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rr);
+    x.lineTo(rx,ry+rr); x.quadraticCurveTo(rx,ry,rx+rr,ry); x.closePath();
+    x.fillStyle=fill; x.fill(); x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke();
+  }
+  x.beginPath(); x.ellipse(45,32,9,6,0,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill();
+  seg(14,44,76,44,1.8);
+  rrect(20,40,50,4,0.8,'#FFFCF7',1.8);
+  seg(31,28,59,28,1.6); seg(36,28,36,32,1.4); seg(45,28,45,32,1.4); seg(54,28,54,32,1.4);
+  rrect(31,32,28,3,0.5,'#FFFCF7',1.6);
+  seg(35,35,35,40,1.4); seg(45,35,45,40,1.4); seg(55,35,55,40,1.4);
+  rrect(26,19,4,21,0.5,'#8A6A4E',1.8); rrect(60,19,4,21,0.5,'#8A6A4E',1.8); rrect(23,18,44,3,0.5,'#8A6A4E',1.8);
+  svgPath_(x,'M 26,24 L 31,19','none',ink,1.5,scale,scale);
+  svgPath_(x,'M 64,24 L 59,19','none',ink,1.5,scale,scale);
+  seg(45,21,45,23.5,1.4); seg(43,23.5,47,23.5,1.4);
+  x.beginPath(); x.ellipse(45,26.5,3.5,3,0,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill(); x.strokeStyle=ink; x.lineWidth=1.5/scale; x.stroke();
+  seg(45,29.5,45,32,1.4);
+  svgPath_(x,'M 45,4 Q 28,11 6,20 C 10,21 16,21 22,20.5 L 68,20.5 C 74,21 80,21 84,20 Q 62,11 45,4 Z','#D94F40',ink,2,scale,scale);
+  svgPath_(x,'M 45,6 L 45,19','none',ink,1.5,scale,scale);
+  svgPath_(x,'M 41,8 Q 30,13 18,20','none',ink,1.4,scale,scale);
+  svgPath_(x,'M 49,8 Q 60,13 72,20','none',ink,1.4,scale,scale);
+  x.beginPath(); x.arc(45,3.5,2,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill(); x.strokeStyle=ink; x.lineWidth=1.8/scale; x.stroke();
+  x.restore();
+}
+function drawLanternPostAsset_(x,ox,oy,scale){
+  x.save(); x.translate(ox,oy); x.scale(scale,scale);
+  x.lineJoin='round'; x.lineCap='round';
+  var ink='#4F4036';
+  function seg(x1,y1,x2,y2,sw){ x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2);
+    x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke(); }
+  function rrect(rx,ry,rw,rh,rr,fill,sw){
+    x.beginPath(); x.moveTo(rx+rr,ry); x.lineTo(rx+rw-rr,ry); x.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rr);
+    x.lineTo(rx+rw,ry+rh-rr); x.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rr,ry+rh);
+    x.lineTo(rx+rr,ry+rh); x.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rr);
+    x.lineTo(rx,ry+rr); x.quadraticCurveTo(rx,ry,rx+rr,ry); x.closePath();
+    x.fillStyle=fill; x.fill(); x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke();
+  }
+  seg(1.5,30,7.5,30,1.3);
+  rrect(3,4,2,26,0.4,'#8A6A4E',1.2);
+  svgPath_(x,'M 4,4 L 13,3.5','none',ink,1.3,scale,scale);
+  seg(4,8,8,4,1.1); seg(13,3.5,13,7.5,1);
+  x.beginPath(); x.ellipse(13,14,5.5,5.5,0,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill(); x.strokeStyle=ink; x.lineWidth=1.3/scale; x.stroke();
+  svgPath_(x,'M 7.8,12.5 Q 13,13.5 18.2,12.5 L 18.2,15.5 Q 13,16.5 7.8,15.5 Z','#D94F40',ink,1.1,scale,scale);
+  svgPath_(x,'M 13,8.5 Q 9.8,14 13,19.5','none',ink,0.9,scale,scale);
+  svgPath_(x,'M 13,8.5 Q 16.2,14 13,19.5','none',ink,0.9,scale,scale);
+  seg(13,8.5,13,19.5,0.9);
+  rrect(10.5,7.5,5,1.5,0.4,'#D94F40',1);
+  rrect(10.5,19,5,1.5,0.4,'#D94F40',1);
+  x.beginPath(); x.arc(13,21.5,0.7,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill(); x.strokeStyle=ink; x.lineWidth=0.7/scale; x.stroke();
+  seg(13,21.5,13,26.5,1.3);
+  x.restore();
+}
+
 /* The village, redrawn small for the corner of the share card, using the
    actual house/tree/fence assets above rather than reinvented shapes. Sky
    down to a parchment fade, two hill bands, then those assets sitting on
@@ -145,43 +267,99 @@ function drawPicket_(x,ox,oy,scale){
    frame strokes so the hill bands can't bleed past the card's own rounded
    corners the way a plain fillRect would -- caught from a screenshot where
    the near hill visibly squared off past the frame's curve at the bottom. */
-function drawShareScenery(x,W,H){
-  var skyBottom=1420, farTop=1560, farBase=1600, nearTop=1660, nearBase=H-78;
+/* Sky pass -- drawn FIRST, before any text, so the pale sky-to-paper wash
+   sits behind the header the same way it sits behind the village further
+   down. Two clouds and a drifting kite (the exact assets #vclouds flies on
+   the live page) give the top of the card the same sense of movement the
+   header alone didn't have. Split out from the old single drawShareScenery
+   pass specifically so the SECOND half (the hills) can be drawn AFTER the
+   persona/stat-grid content, once the real height of that content is known
+   -- see drawShareVillage_ and its call site in drawShareCard(). */
+function drawShareSky_(x,W,H){
+  var skyBottom=H*0.64;
+  x.save();
+  roundRectPath(x,46,46,W-92,H-92,[132,30,120,30]);
+  x.clip();
+  var sky=x.createLinearGradient(0,0,0,skyBottom);
+  sky.addColorStop(0,'#BFE0F3'); sky.addColorStop(1,'#FFFCF7');
+  x.fillStyle=sky; x.fillRect(0,0,W,skyBottom);
+  drawCloudAsset_(x,W*0.06,118,1.35);
+  drawCloudAsset_(x,W*0.60,166,1.05);
+  drawKiteAsset_(x,W*0.85,466,1.5);
+  x.restore();
+}
+
+/* Village pass -- drawn AFTER the persona badge and stat grid, once `y`
+   (how far down the card real content actually reached) is known, so the
+   hills can start right where the content ends instead of at a guessed
+   fixed y that either clips the scene or leaves a dead gap above it. Three
+   depth bands (far/mid/near), not two, and every fill now runs all the way
+   down to the card's own bottom edge (H, inside the same rounded clip)
+   instead of stopping short at a `nearBase` that left a flat paper margin
+   below everyone's feet -- that gap plus the shallow band height is what
+   read as "cramped and clipped." hasMahjong swaps in the actual mahjong
+   pavilion for the mid band (tied to a real stat on the card, not just
+   decoration) when that stat made shareStats()'s cut; otherwise a small
+   cluster of the background village houses fills that band instead. */
+function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
+  var farTop=sceneryTop, farBase=sceneryTop+60,
+      midTop=farBase, midBase=farBase+75,
+      nearTop=midBase+95, nearBase=midBase+255;
 
   x.save();
   roundRectPath(x,46,46,W-92,H-92,[132,30,120,30]);
   x.clip();
-
-  var sky=x.createLinearGradient(0,0,0,skyBottom);
-  sky.addColorStop(0,'#BFE0F3'); sky.addColorStop(1,'#FFFCF7');
-  x.fillStyle=sky; x.fillRect(0,0,W,skyBottom);
-  x.fillStyle='#FFFCF7'; x.fillRect(0,skyBottom,W,nearBase-skyBottom);
 
   // far hill: a soft, low sage ridge
   x.fillStyle='#A8C59A';
   x.beginPath(); x.moveTo(0,farBase);
   x.bezierCurveTo(W*0.22,farTop-14, W*0.36,farBase+10, W*0.5,farTop);
   x.bezierCurveTo(W*0.68,farTop-16, W*0.82,farBase+8, W,farTop+6);
-  x.lineTo(W,nearBase); x.lineTo(0,nearBase); x.closePath(); x.fill();
+  x.lineTo(W,H); x.lineTo(0,H); x.closePath(); x.fill();
 
-  // near hill: the leaf-green band everything else sits on
+  // mid hill: a step darker/greener than the far ridge, a step lighter than
+  // the near band -- the same depth gradient the on-page panorama uses
+  // (sage far, leaf near), with one more rung so the midground has
+  // somewhere of its own to stand.
+  x.fillStyle='#8FB08B';
+  x.beginPath(); x.moveTo(0,midBase);
+  x.bezierCurveTo(W*0.18,midTop-10, W*0.4,midBase+14, W*0.58,midTop+4);
+  x.bezierCurveTo(W*0.76,midTop-8, W*0.9,midBase+10, W,midTop+8);
+  x.lineTo(W,H); x.lineTo(0,H); x.closePath(); x.fill();
+
+  // Midground, drawn BEFORE the near hill so it sits half behind the
+  // foreground rise, same trick the tree already used.
+  if(hasMahjong){
+    drawPavilionAsset_(x,W*0.34,midBase-55*1.6,1.6);
+  } else {
+    drawSmallHouseAsset_(x,W*0.28,midBase-45*1.35,1.35,'#E4B64A');
+    drawSmallHouseAsset_(x,W*0.40,midBase-45*1.15,1.15,'#5E8F6B');
+  }
+  var sTree=1.5;
+  drawTree_(x,W*0.66,(midBase-8)-52*sTree,sTree);
+
+  // near hill: the leaf-green foreground the house, fence and lantern posts
+  // stand on -- filled all the way to H, so there is no flat paper strip
+  // between anyone's feet and the card's actual bottom edge.
   x.fillStyle='#5E8F6B';
   x.beginPath(); x.moveTo(0,nearBase-90);
   x.bezierCurveTo(W*0.2,nearTop-20, W*0.34,nearTop+18, W*0.5,nearTop+2);
   x.bezierCurveTo(W*0.66,nearTop-14, W*0.8,nearTop+22, W,nearTop+8);
-  x.lineTo(W,nearBase); x.lineTo(0,nearBase); x.closePath(); x.fill();
+  x.lineTo(W,H); x.lineTo(0,H); x.closePath(); x.fill();
 
-  var s=1.9;
-  // Each asset's own ground line lands at the same y (nearBase): the
-  // picket's foot is at local y=29.4 (its viewBox is 30 tall), the house's
-  // and tree's are both at local y=64/52 -- oy is solved per-asset so
-  // oy + groundLocalY*s = nearBase, or the fence would float above the
-  // ground the house and tree are standing on.
-  drawPicket_(x,W*0.72,nearBase-29.4*s,s);
-  drawPicket_(x,W*0.72+13*s,nearBase-29.4*s,s);
-  drawPicket_(x,W*0.72+26*s,nearBase-29.4*s,s);
-  drawTree_(x,W*0.22,nearBase-52*s,s);
-  drawHouse_(x,W*0.48,nearBase-64*s,s);
+  var sHouse=2.3, sFence=1.5, sLantern=1.5;
+  var houseOx=W*0.34;
+  drawHouse_(x,houseOx,nearBase-64*sHouse,sHouse);
+  var fenceOx=houseOx+76*sHouse+16;
+  drawPicket_(x,fenceOx,nearBase-29.4*sFence,sFence);
+  drawPicket_(x,fenceOx+13*sFence,nearBase-29.4*sFence,sFence);
+
+  // Lantern posts flanking the village -- the Festivalgoer persona's own
+  // motif (the same silhouette as the header's #lantern and the recap's
+  // floating lanterns), so the scene reads as festival-lit at both edges
+  // instead of just populated in the middle.
+  drawLanternPostAsset_(x,W*0.05,nearBase-30*sLantern,sLantern);
+  drawLanternPostAsset_(x,W*0.90,nearBase-30*sLantern,sLantern);
 
   x.restore(); // lifts the clip -- border strokes and text below draw unclipped
 }
@@ -253,14 +431,16 @@ function drawStatIcon_(x,key,cx,cy,r,fill,ink){
     }
     x.closePath(); x.fill(); x.stroke();
   } else if(key==='journey'){
-    // a map pin -- where they showed up
+    // a little trail signpost, not a generic map pin -- echoes the same
+    // signpost() silhouette the chapter breaks use elsewhere in the story,
+    // so "showed up" reads as the walk's own waymarking language.
     x.beginPath();
-    x.moveTo(cx,cy+r);
-    x.bezierCurveTo(cx-r*0.9,cy+r*0.15,cx-r*0.62,cy-r,cx,cy-r);
-    x.bezierCurveTo(cx+r*0.62,cy-r,cx+r*0.9,cy+r*0.15,cx,cy+r);
-    x.closePath(); x.fill(); x.stroke();
-    x.beginPath(); x.arc(cx,cy-r*0.22,r*0.32,0,Math.PI*2);
-    x.fillStyle='#FFFCF7'; x.fill(); x.stroke();
+    x.moveTo(cx-r*0.08,cy+r); x.lineTo(cx-r*0.08,cy-r*0.15);
+    x.strokeStyle=ink; x.lineWidth=r*0.16; x.lineCap='round'; x.stroke();
+    x.beginPath();
+    x.moveTo(cx-r*0.08,cy-r*0.75); x.lineTo(cx+r*0.9,cy-r*0.55);
+    x.lineTo(cx+r*0.62,cy-r*0.32); x.lineTo(cx-r*0.08,cy-r*0.12); x.closePath();
+    x.fill(); x.stroke();
   } else if(key==='mahjong'){
     // a mahjong tile with two pips
     roundRectPath(x,cx-r,cy-r*0.78,r*2,r*1.56,[8,8,8,8]);
@@ -283,9 +463,13 @@ function drawShareCard(){
   var c=document.createElement('canvas'); c.width=W; c.height=H;
   var x=c.getContext('2d');
 
-  // parchment ground, with the village scenery inset along the bottom
+  // Full paper square first, UNCLIPPED, so the four corners outside the
+  // rounded ink frame still read as the same parchment rather than bare
+  // canvas -- drawShareSky_/drawShareVillage_ each clip to the rounded
+  // card shape for their own content, but this base fill deliberately
+  // doesn't.
   x.fillStyle='#FFFCF7'; x.fillRect(0,0,W,H);
-  drawShareScenery(x,W,H);
+  drawShareSky_(x,W,H);
 
   // wobbly ink frame, mirroring the on-screen card's asymmetric radii
   x.strokeStyle='rgba(79,64,54,.7)'; x.lineWidth=7;
@@ -302,7 +486,7 @@ function drawShareCard(){
 
   x.fillStyle='#C9493B';
   x.font='700 30px Montserrat, sans-serif';
-  x.fillText('ATENEO CELADON  ·  RECWEEK 2026-2027', cx, 224);
+  x.fillText('ATENEO CELADON  \u00b7  RECWEEK 2026-2027', cx, 224);
 
   x.fillStyle='#4F4036';
   x.font='400 132px Bevan, Georgia, serif';
@@ -313,27 +497,25 @@ function drawShareCard(){
   x.fillText((P.name||'')+'’s Wrapped', cx, 436);
 
   // persona as the hero -- the redesign's one deliberate focal point, since
-  // it's the most "you" fact on the card. A coral-wash badge sized to the
-  // text (via measureText, so it fits "INTJ" and "The Schoolhouse Scholar"
-  // equally well) sits behind the name, the same roundRectPath language the
-  // outer frame uses at a much smaller scale, so the name reads as THE
-  // headline rather than one more line in a list.
-  var y=598;
+  // it's the most "you" fact on the card. Previously a boxed plaque with
+  // ribbon tails; dropped after a real device screenshot still read the
+  // box as off-centre even though the actual draw coordinates measured out
+  // exactly symmetric (plaqueX + plaqueW/2 === cx, checked directly against
+  // the canvas calls). Rather than keep chasing a rectangle whose edges
+  // apparently don't LOOK centred even when they measurably ARE, drop the
+  // rectangle: plain centred text has no edges to misjudge, and a short
+  // centred rule below it is trivially symmetric by construction (it's
+  // just a line from cx-70 to cx+70).
+  var y=650;
   if(P.persona){
-    x.fillStyle='#5E8F6B';
-    x.font='400 96px "Kaiti SC", serif';
-    x.fillText('乡', cx, y); y+=118;
-
-    x.font='800 74px Grandstander, sans-serif';
+    x.font='800 76px Grandstander, sans-serif';
     var pl=wrapText(x,P.persona.name,W-260);
-    var pw=0; pl.forEach(function(l){ pw=Math.max(pw,x.measureText(l).width); });
-    roundRectPath(x, cx-pw/2-36, y-64, pw+72, pl.length*86+40, [26,26,26,26]);
-    x.fillStyle=hexA_('#D94F40',.13); x.fill();
-    x.strokeStyle=hexA_('#D94F40',.4); x.lineWidth=2.5; x.stroke();
-
     x.fillStyle='#4F4036';
-    for(var i=0;i<pl.length;i++){ x.fillText(pl[i],cx,y); y+=86; }
-    y+=54;
+    for(var i=0;i<pl.length;i++){ x.fillText(pl[i],cx,y); y+=88; }
+    y+=6;
+    x.strokeStyle='#D94F40'; x.lineWidth=4; x.lineCap='round';
+    x.beginPath(); x.moveTo(cx-70,y); x.lineTo(cx+70,y); x.stroke();
+    y+=64;
   }
 
   // stat grid -- one card per category (department / rarest answer / showed
@@ -353,11 +535,19 @@ function drawShareCard(){
     var bx=gx+col*(colW+gap), by=y+row*(cardH+gap);
     var tint=COLORS[r.color]||'#6B5D51';
 
+    // Consistent ink-brown border on every card regardless of category tint
+    // (the previous translucent colored stroke read as disconnected from
+    // the flat ink-outline language everything else on the card uses),
+    // plus a small ribbon tab straddling the top edge so the tint still
+    // carries a clear category read at a glance.
     roundRectPath(x,bx,by,colW,cardH,[20,20,20,20]);
     x.fillStyle=hexA_(tint,.14); x.fill();
-    x.strokeStyle=hexA_(tint,.55); x.lineWidth=2.5; x.stroke();
+    x.strokeStyle='#4F4036'; x.lineWidth=2.4; x.stroke();
+    roundRectPath(x,bx+18,by-9,54,18,[3,3,3,3]);
+    x.fillStyle=tint; x.fill();
+    x.strokeStyle='#4F4036'; x.lineWidth=1.6; x.stroke();
 
-    drawStatIcon_(x, r.key, bx+52, by+56, 26, tint, '#4F4036');
+    drawStatIcon_(x, r.key, bx+52, by+66, 26, tint, '#4F4036');
 
     x.fillStyle='#6B5D51'; x.font='700 21px Montserrat, sans-serif';
     x.fillText(r.label.toUpperCase(), bx+26, by+112);
@@ -369,25 +559,40 @@ function drawShareCard(){
   });
   y += Math.ceil(rows.length/2)*(cardH+gap) + 6;
 
-  // footer -- sits directly over the hill scenery now, so a single fixed
-  // text color can't be trusted: measured, coral-on-sage is 2.47:1 and
-  // muted-on-leaf is 1.7:1, both well under the 4.5:1 WCAG AA floor (the
-  // sage/leaf hill colors were never designed to carry text). A paper-
-  // colored halo stroke behind the fill is what #hint already does on the
-  // live page for the same reason -- guaranteed legible regardless of
-  // which hill color, or the sky, ends up underneath.
-  function haloText(text,y,fill,font){
-    x.font=font; x.lineJoin='round'; x.miterLimit=2;
-    x.lineWidth=9; x.strokeStyle='rgba(255,252,247,.94)';
-    x.strokeText(text,cx,y);
-    x.fillStyle=fill; x.fillText(text,cx,y);
-  }
+  // Footer CTA -- a flat paper pill/banner sitting directly below the stat
+  // grid, not a white-outlined halo laid over the hills: the halo was a
+  // legibility patch (any hill color underneath could wreck contrast), but
+  // a flat vector storybook doesn't really do soft outer glows, so it read
+  // as a sticker pasted over the scene. A plain ink-bordered paper pill
+  // gets the same "legible regardless of what's behind it" property in the
+  // same flat language every other surface on the card already uses.
+  //
+  // Strictly sequential from here down (content -> gap -> footer -> gap ->
+  // hills -> card bottom) is deliberate: an earlier version measured the
+  // footer/hills off a shared `sceneryTop` that was ALSO clamped to a fixed
+  // fraction of the card height for a "big hills" guarantee, and the clamp
+  // could end up ABOVE where a longer stat grid (5 stats -> 3 rows) had
+  // actually finished drawing -- the footer and the last card visibly
+  // overlapped. Chaining each element strictly off the previous one's
+  // bottom edge makes that overlap impossible by construction; a short
+  // grid still gets a big hill scene because nothing here pulls the hills
+  // UP to a fixed y, only ever down from wherever content really ended.
+  var footerW=W-260, footerH=132, footerGap=44;
+  var footerTop=y+footerGap, footerCy=footerTop+footerH/2;
+  var hasMahjong = rows.some(function(r){ return r.key==='mahjong'; });
+  var sceneryTop = footerTop+footerH+footerGap;
+  drawShareVillage_(x,W,H,sceneryTop,hasMahjong);
+
+  roundRectPath(x, cx-footerW/2, footerCy-footerH/2, footerW, footerH, [30,10,26,10]);
+  x.fillStyle='rgba(255,252,247,.94)'; x.fill();
+  x.strokeStyle='#4F4036'; x.lineWidth=2.6; x.stroke();
   x.textAlign='center';
-  haloText('Start the next chapter with Celadon', H-300, '#C9493B', '800 34px Grandstander, sans-serif');
-  haloText('@ateneoceladon', H-248, '#4F4036', '600 28px Montserrat, sans-serif');
+  x.fillStyle='#C9493B'; x.font='800 34px Grandstander, sans-serif';
+  x.fillText('Start the next chapter with Celadon', cx, footerCy-14);
+  x.fillStyle='#4F4036'; x.font='600 28px Montserrat, sans-serif';
+  x.fillText('@ateneoceladon', cx, footerCy+38);
   return c;
 }
-
 
 
 /* ── share sheet: open/close ──────────────────────────────────────────────

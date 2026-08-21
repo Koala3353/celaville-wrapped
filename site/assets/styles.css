@@ -430,6 +430,38 @@ body.paused #walker{animation-play-state:paused}
 @keyframes rise{to{opacity:1;transform:none}}
 
 /* ── type ────────────────────────────────────────────────── */
+/* Sky-legible text — h1/h2/h3/.kicker sit directly on #vsky (no card
+   underneath) on most slides, and #vsky's own color runs the full TOD range
+   including night's dark indigo top (#4B4771). --ink/--coral-text were only
+   ever measured for contrast against --paper -- fine for morning/midday/
+   golden, but at dusk/night dark-on-dark reads as a muddy blob.
+   First attempt at a fix was a paper-colored text-shadow halo (the same
+   trick #hint and share.js's haloText() use) -- rejected on sight: at
+   heading size the blur reads as a smudged glow around the letterforms,
+   not "readable text," which is a worse result than the bug. The actual
+   fix is to change the ink itself: --onsky-ink/--onsky-coral (declared on
+   #frame, where app.js's paintVillage() actually writes --dusk-glow so
+   these two can react to it) blend toward --paper as the walk nears night,
+   via color-mix -- so the text simply gets an appropriately lighter fill
+   the moment the sky underneath goes dark, no glow required. --sky-fade
+   stays at 0% (no shift at all) through sunrise/morning/midday/golden --
+   the only backgrounds actually risky are the last ~1/4 of --dusk-glow's
+   range (dusk's #CFC6D8 is still borderline-light; night's #4B4771 is not),
+   which is why the ramp only starts past .72. */
+#frame{
+  --sky-fade: clamp(0%, calc((var(--dusk-glow,0) - .72) * 380%), 100%);
+  --onsky-ink: color-mix(in srgb, var(--ink), var(--paper) var(--sky-fade));
+  --onsky-coral: color-mix(in srgb, var(--coral-text), var(--paper) var(--sky-fade));
+}
+/* Scoped to direct children of .inner, not the bare tag/class -- a card's
+   own heading-shaped content (there isn't any today, but .quote/.menu-note
+   already set their own fixed colors for the same reason) must never
+   inherit an "onsky" fade: a card is always light paper regardless of TOD,
+   so fading its text toward paper would erase contrast in the OPPOSITE
+   direction. `.inner > x` naturally excludes anything nested inside `.card`,
+   since .card is itself a direct child of .inner alongside these. */
+.inner > .kicker{color:var(--onsky-coral)}
+.inner > h1,.inner > h2,.inner > h3{color:var(--onsky-ink)}
 .kicker{
   font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;
   color:var(--coral-text);margin:0 0 14px;font-family:'Montserrat';
@@ -441,6 +473,16 @@ h3{font-family:'Grandstander';font-size:19px;font-weight:800;margin:0 0 8px;colo
 /* 17px body: comfortably above the 16px floor where mobile Safari auto-zooms,
    and the line-height/measure below keep it to ~34 characters a line. */
 p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
+/* NOT extended to a blanket ".inner > p" rule, on purpose, after it broke
+   something: `.inner > p` (specificity 0,1,1) outranks EVERY other class
+   already setting its own deliberate color on a `<p>` -- `.sm` (muted
+   gray), `.break-eyebrow`/`.break-line` (white, meant for the always-dark
+   v-break floods) all got silently overridden to onsky-ink, which is how
+   an act break's OWN white heading ended up rendering in brown. Body copy
+   also sits lower in `.inner`, past where the sky gradient has already
+   eased toward paper, so it was never actually at the same risk the
+   heading immediately above it is -- kicker/h1/h2/h3 alone were the
+   reported bug, and are the only elements this fix touches. */
 .sm{font-size:15px;color:var(--muted);line-height:1.55}
 .hl{color:var(--coral-text);font-weight:700}
 .hl-g{color:var(--leaf);font-weight:700}
@@ -598,6 +640,12 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
    bars use -- no JS needed. The global prefers-reduced-motion block above
    (all transition-durations to .01ms) makes this reduced-motion-safe for
    free, same as every other entrance in this file. */
+/* The row's sentence ("14 people take BS Bio with you") and its stated
+   fraction ("14 of 619 in Celaville") -- see pictoRow()'s own comment for
+   why these replaced a chart-head label/value split that scrambled the
+   sentence and never stated what the dot grid was out of. */
+.picto-sentence{font-size:16px;font-weight:600;line-height:1.35;margin:0 0 8px;color:var(--ink)}
+.picto-frac{font-size:12.5px;font-weight:700;color:var(--muted);margin:6px 0 0;letter-spacing:.01em}
 .picto-grid{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 4px}
 .picto-icon{
   width:22px;height:26px;flex:none;
@@ -792,12 +840,21 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
 .v-break.tone-coral{background:linear-gradient(170deg,rgba(243,191,141,.86) 0%,rgba(203,74,60,.90) 24%,rgba(168,61,49,.94) 100%)}
 .v-break.tone-leaf{background:linear-gradient(170deg,rgba(127,169,127,.86),rgba(84,128,96,.90) 58%,rgba(63,107,80,.94))}
 .v-break.tone-ink{background:linear-gradient(170deg,rgba(110,96,118,.86),rgba(79,64,54,.90) 58%,rgba(51,42,36,.94))}
+/* tone-sky -- chapter two used to open on tone-coral, the same saturated red
+   the recap/mahjong/persona beats already use elsewhere in the deck, so two
+   chapters in a row read as "the red one" and "also kind of the red one."
+   Brand sky blue, deepened the same way tone-coral deepens peach->accessible
+   coral->near-black: light brand --sky as the decorative cap (nothing legible
+   ever sits there), a deep accessible teal-blue where the eyebrow/heading
+   actually land, darkest at the very bottom edge. */
+.v-break.tone-sky{background:linear-gradient(170deg,rgba(159,208,235,.86) 0%,rgba(46,90,110,.90) 26%,rgba(28,58,72,.94) 100%)}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   /* No backdrop-filter support: fall back to the original fully opaque
      flood so contrast never regresses on an engine that can't blur. */
   .v-break.tone-coral{background:linear-gradient(170deg,var(--peach) 0%,var(--coral-onwhite) 24%,#A83D31 100%)}
   .v-break.tone-leaf{background:linear-gradient(170deg,#7FA97F,var(--leaf-onwhite) 58%,#3F6B50)}
   .v-break.tone-ink{background:linear-gradient(170deg,#6E6076,#4F4036 58%,#332A24)}
+  .v-break.tone-sky{background:linear-gradient(170deg,var(--sky) 0%,#2E5A6E 26%,#1C3A48 100%)}
 }
 .v-break::after{
   content:'';position:absolute;left:0;right:0;bottom:0;height:22%;z-index:0;
@@ -1143,7 +1200,7 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
    A morning sky (the walk's own opening time-of-day) with the same mascot
    who walks the panorama, so this reads as the first beat of the story
    rather than a spinner bolted on top of it. JS holds it up for a minimum
-   3s (see LOAD_MIN below) and reuses the walker art already inlined for
+   1s (see LOAD_MIN below) and reuses the walker art already inlined for
    #walker, so nothing here duplicates that data URI. */
 #loader{
   position:absolute;inset:0;z-index:100;
@@ -1162,9 +1219,15 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
 .ldr-sky{
   position:absolute;inset:0;
   background:linear-gradient(180deg,var(--tod-top,#BFE0F3) 0%,var(--paper) 78%);
-  transition:opacity .4s ease;
+  transition:opacity .4s ease,transform 1.1s cubic-bezier(.4,0,.2,1);
 }
-#loader.done .ldr-sky{opacity:0}
+/* Scaling this up as it fades is what makes the sky read as receding
+   ABOVE the reader (falling away) rather than merely dissolving in place
+   -- same 1.1s window as ldr-rush's clouds, same direction of travel
+   (away from the reader), so the sky and its own clouds move as one
+   layer instead of the clouds visually detaching from the gradient
+   behind them. */
+#loader.done .ldr-sky{opacity:0;transform:scale(1.22)}
 .ldr-content{
   position:absolute;inset:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -1206,8 +1269,8 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
 .ldr-dots i:nth-child(3){animation-delay:.3s}
 @keyframes ldr-dot{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
 .ldr-bar{width:120px;height:4px;border-radius:99px;background:rgba(79,64,54,.14);overflow:hidden}
-/* 3s to match LOAD_MIN in the script below -- if one changes, so must the other. */
-.ldr-bar > i{display:block;height:100%;width:6%;background:var(--coral);border-radius:inherit;animation:ldr-fill 3s linear forwards}
+/* 1s to match LOAD_MIN in the script below -- if one changes, so must the other. */
+.ldr-bar > i{display:block;height:100%;width:6%;background:var(--coral);border-radius:inherit;animation:ldr-fill 1s linear forwards}
 @keyframes ldr-fill{from{width:6%}to{width:96%}}
 
 /* ── loader failure state ─────────────────────────────────────────────────
@@ -1254,12 +1317,28 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
    language read as a *different* motion from "clouds exiting upward" --
    this is the same motion (everything moves up), which is what makes it
    read as one continuous rise instead of two separate effects layered on
-   top of each other. transform-origin isn't needed for a pure translate. */
+   top of each other.
+
+   Fourth pass adds one thing on top, in the SAME register rather than a
+   new one: a small scale (.965->1) riding along with the translateY,
+   easing out past 1 before settling (cubic-bezier's 2nd/4th values >1 is
+   what produces that small overshoot-then-settle, not a second keyframe
+   or a second animation to desync from the rush above). The clouds above
+   already scale as they exit (.9->1.2 in ldr-rush) -- so scale was already
+   part of this motion's vocabulary, just not applied to the ground yet.
+   Extending it here, still moving in the SAME direction at the SAME time
+   as the rush, is what turns "the ground slides up into place" into "the
+   village is settling into place after a descent," without reintroducing
+   the earlier rejected zoom (that version scaled+blurred the ground as an
+   unrelated, differently-timed effect layered against the clouds -- this
+   is the opposite: one motion, one timing, one direction, scale along for
+   the ride). No blur, ever -- see the brief's iOS Safari filter warning
+   elsewhere in this file. */
 .ldr-fall{
-  transform:translateY(42%);
-  transition:transform 1.1s cubic-bezier(.16,1,.3,1);
+  transform:translateY(42%) scale(.965);
+  transition:transform 1.15s cubic-bezier(.22,1.12,.32,1);
 }
-.ldr-fall.ldr-land{transform:translateY(0)}
+.ldr-fall.ldr-land{transform:translateY(0) scale(1)}
 @media(prefers-reduced-motion:reduce){
   .ldr-cloud{animation:none}
   .ldr-walker{animation:none}

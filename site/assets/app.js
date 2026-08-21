@@ -283,6 +283,13 @@ function paintVillage(i,total){
   // read it via CSS custom-property inheritance -- neither of them needs
   // paintVillage to compute anything a second time.
   if(villageWrap) villageWrap.style.setProperty('--dusk-glow', tod.warm);
+  // Also set on #frame itself (village's own parent), not just #village --
+  // #slides sits as a SIBLING of #village under #frame, so a heading/kicker
+  // inside .inner can only ever inherit --dusk-glow if it's set on a shared
+  // ancestor. This is what lets styles.css's --onsky-ink/--onsky-coral
+  // (defined on #frame, see the "sky-legible text" block) track the same
+  // live warmth value instead of being stuck at their unset fallback.
+  if(frameEl) frameEl.style.setProperty('--dusk-glow', tod.warm);
   /* One footprint per step already taken, laid down behind her. */
   if(printsEl){
     var want=Math.min(i,9);
@@ -754,13 +761,15 @@ function setThemeColor(hex){
 
 /* ── boot: fetch the payload, then build and reveal ──────────────────────
    Replaces the old server-templated `var P = <?!= payload ?>` with a real
-   network round trip (api.js). The loader already sits for a hard
-   LOAD_MIN=3000ms, which conveniently covers a cold Apps Script start; on
-   top of that this now also waits for the fetch itself, and swaps the
-   loader to an error card on failure instead of ever leaving the reader on
-   spinning clouds. */
+   network round trip (api.js). revealFromLoader() waits for BOTH the fetch
+   to resolve AND LOAD_MIN to elapse, then reveals immediately -- so a fast
+   response still holds for one full second (long enough to read as an
+   intentional first scene, not a flicker), but a slow cold-start Apps
+   Script response is never padded with EXTRA artificial waiting once the
+   data is actually back. Previously a flat 3000ms regardless of how fast
+   the fetch returned. */
 var loaderEl=document.getElementById('loader');
-var LOAD_MIN=3000; // keep in sync with the 3s in .ldr-bar > i's animation
+var LOAD_MIN=1000; // keep in sync with the 1s in .ldr-bar > i's animation
 var RUSH_MS=1100;  // keep in sync with .ldr-rush's 1.1s animation
 
 function showLoaderError(message){

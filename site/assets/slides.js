@@ -74,8 +74,20 @@ function gauge(pct,headline,caption,cls){
    really is "how many people, out of a small round number" rather than a
    magnitude to compare across categories. At least 1 icon fills whenever
    count>0, for the same reason chartRow floors a bar at 2%: a real overlap
-   rounding down to zero filled icons would misreport "nobody" as the count. */
-function pictoRow(label,countText,pct,count,cls){
+   rounding down to zero filled icons would misreport "nobody" as the count.
+
+   `sentence` is a full clause ("14 people take BS Bio with you"), not a
+   label meant to sit opposite a value -- the old version split a count and
+   a label across a chart-head's two columns (label left, value right, the
+   same layout chartRow uses), which scrambles a sentence that was written
+   to read left-to-right as one unit into two disconnected fragments. It
+   also never said what the dot grid was OUT OF, so "6 of 10 filled" had no
+   stated denominator anywhere on screen. Both are fixed by dropping the
+   two-column head entirely: the sentence renders as its own line, and
+   `frac` states the real part/whole pair beneath the dots (same
+   "never a bare percentage, state the real numbers" rule donut() already
+   follows) instead of leaving the reader to guess what 10 icons represent. */
+function pictoRow(sentence,frac,pct,count,cls){
   // Floors at 1 filled icon whenever count>0, same as chartRow's 2% floor:
   // a group of 1 out of 619 rounds to 0% and would otherwise fill zero
   // icons, misreporting a real overlap as "nobody" just because the ratio is
@@ -89,9 +101,9 @@ function pictoRow(label,countText,pct,count,cls){
       '<path d="M1 23c0-6.6 4-11 9-11s9 4.4 9 11"/></svg></i>';
   }
   return '<div class="picto-row">'+
-    '<div class="chart-head"><span class="chart-label">'+label+'</span>'+
-    (countText?'<span class="chart-val">'+countText+'</span>':'')+'</div>'+
+    '<p class="picto-sentence">'+sentence+'</p>'+
     '<div class="picto-grid">'+icons+'</div>'+
+    (frac?'<p class="picto-frac">'+frac+'</p>':'')+
   '</div>';
 }
 
@@ -286,11 +298,21 @@ if(P.birthday && P.birthday.pretty){
 if(P.returning){
   var rm=P.returning;
   var rmVerb = /new/i.test(rm.label) ? 'new' : 'returning';
+  // A single ready-made percentage ("X% of Celaville is also new/returning")
+  // is a gauge's job, not chartRow's -- chartRow is for comparing several
+  // categories' magnitudes side by side, and this slide only ever has the
+  // one number. Also puts a second ring-shaped slide's worth of visual
+  // variety between the two bar-chart slides on either side of this one
+  // (basics and arrival, both genuinely multi-category comparisons that
+  // stay bars) instead of a third bar in a row.
   add(7500,'<p class="kicker">First time, or back again?</p>'+
     '<h2>You’re a '+rmVerb+' member</h2>'+
-    '<div class="chart">'+chartRow(esc(rm.label), rm.pct+'%', rm.pct, 'leaf')+'</div>'+
-    '<p class="sm">'+rm.pct+'% of Celaville is too'+
-      (rm.count?' &mdash; '+rm.count+' '+plural(rm.count,'other','others')+' alongside you.':'.')+
+    '<div style="margin-top:10px">'+gauge(rm.pct,
+        rm.count+' '+plural(rm.count,'other','others'),
+        'in Celaville are too', 'leaf')+'</div>'+
+    '<p class="sm">'+(rm.count
+      ? 'You’re not walking in alone on this one.'
+      : 'You’re the only one.')+
     '</p>');
 }
 
@@ -303,16 +325,28 @@ if(P.returning){
    playful, storybook-illustration fit than another bar track. */
 if(P.twins && P.twins.length){
   var t='';
-  // three strongest overlaps only — the rest is a scroll nobody finishes
-  P.twins.slice(0,3).forEach(function(x){
+  // Three strongest overlaps only -- the rest is a scroll nobody finishes.
+  // "Strongest" now actually means highest count: this used to just slice
+  // the array in push order (course, school, MBTI, birthday, last name),
+  // so a member with 40 course-mates but only 2 MBTI twins could see the
+  // MBTI row ahead of course if it happened to sit first in that order --
+  // never actually sorted despite the comment already claiming it was.
+  var topTwins = P.twins.slice().sort(function(a,b){ return b.count-a.count; }).slice(0,3);
+  topTwins.forEach(function(x){
     var pct = P.n ? Math.round((x.count/P.n)*100) : 0;
-    t+=pictoRow(esc(x.label), x.count+' '+plural(x.count,'person','people'), pct, x.count);
+    // One sentence, not a label/value pair split across two columns --
+    // "14 people take BS Bio with you" reads left-to-right as itself.
+    // frac states the dot grid's actual denominator (out of everyone who
+    // signed up, P.n), since "6 of 10 filled" means nothing on its own.
+    var sentence = x.count+' '+plural(x.count,'person','people')+' '+esc(x.label);
+    var frac = x.count+' of '+P.n+' in Celaville';
+    t+=pictoRow(sentence, frac, pct, x.count);
   });
   add(9000,'<p class="kicker">Your neighbours</p>'+
     '<p class="big sm-num" data-count="'+P.twinTotal+'">0</p>'+
     '<h2 style="margin-top:6px">'+plural(P.twinTotal,'person','people')+' already overlap with you</h2>'+
-    '<div class="chart">'+t+'</div>'+
-    '<p class="sm">Same course, same school, same four letters, same birthday month. You didn\u2019t walk in alone.</p>');
+    '<p class="sm">That\u2019s everyone who shares at least one of these with you. Each one below is its own share of everyone who signed up, not a slice of the number above.</p>'+
+    '<div class="chart">'+t+'</div>');
 }
 
 /* ── ACT TWO: where you fit ────────────────────────────────────────────
@@ -324,7 +358,7 @@ addBreak(!!(P.dept || P.project),
   'Chapter two',
   'That\u2019s where you came from.',
   'Now, where do you fit?',
-  'coral', '\u7b2c\u4e8c\u8bfe', 'village square');
+  'sky', '\u7b2c\u4e8c\u8bfe', 'village square');
 
 /* 5 — department */
 (function(){
@@ -366,9 +400,18 @@ addBreak(!!(P.dept || P.project),
    sent one. */
 if(P.ldpTravel){
   var lt=P.ldpTravel;
+  // Single ready-made percentage again (one answer, its own share of the
+  // batch) -- same reasoning as the returning-member gauge above. A solo
+  // pick (count===1, "only you") has no meaningful ring to draw (100% of a
+  // group of one isn't a ratio worth a meter), so that case stays plain
+  // text instead, matching the MBTI slide's own isRarest branch.
   add(8000,'<p class="kicker">How far you’ll go <span class="cn">· LDP</span></p>'+
     '<h2>'+esc(lt.label)+'</h2>'+
-    '<div class="chart">'+chartRow(esc(lt.label), lt.count===1?'only you':lt.pct+'%', lt.pct, 'sky')+'</div>'+
+    (lt.count===1
+      ? '<p class="big sm-num">1 of '+P.n+'</p>'
+      : '<div style="margin-top:10px">'+gauge(lt.pct,
+            lt.count+' '+plural(lt.count,'other','others'),
+            'drew the same line', 'sky')+'</div>')+
     '<p class="sm">'+
       (lt.count===1
         ? 'Nobody else drew the line where you did for the Leadership Development Program.'
@@ -742,21 +785,23 @@ if(P.mahjong && (P.mahjong.ownedList.length>1 || P.mahjong.daysSince>0)){
 
 /* 17 — recap */
 (function(){
+  // A curated highlight reel, not the whole survey restated -- this used to
+  // push up to 15 rows (course, batch overlaps, letters, familiarity,
+  // platform, zodiac, events, mahjong, starter pack, rarest, membership,
+  // ldp travel, department, project, persona), most of which already had
+  // their OWN dedicated slide earlier in the walk. Restating literally
+  // everything here read as too much precisely because it was too much --
+  // eight of the genuinely distinctive facts, prioritizing the ones that
+  // don't overlap with each other, is a recap; the old list was a data dump.
   var r=[];
-  if(P.basics.course) r.push(['Your course',P.basics.course+(P.basics.courseIsSolo?' · only you':' · '+P.basics.coursePct+'% of Celaville')]);
-  if(P.twinTotal) r.push(['Batch overlaps',P.twinTotal+' '+plural(P.twinTotal,'person','people')]);
-  if(P.mbti&&P.mbti.type) r.push(['Your letters',P.mbti.type+(P.mbti.isRarest?' · one of one':' · '+P.mbti.pct+'%')]);
-  if(P.familiarity) r.push(['Fil-Chi familiarity',P.familiarity.score+'/5 (avg '+P.familiarity.avg+')']);
-  if(P.platforms) r.push(['Top platform',P.platforms.top]);
-  if(P.birthday && P.birthday.zodiac) r.push(['Your sign','Year of the '+P.birthday.zodiac]);
-  if(P.journey) r.push(['Events attended',P.journey.eventCount+' of '+P.journey.totalEvents]);
-  if(P.mahjong) r.push(['Mahjong',P.mahjong.games+' '+plural(P.mahjong.games,'game')+' · '+P.mahjong.coins+' coins']);
-  if(P.checklist) r.push(['Starter pack',P.checklist.done+' of '+P.checklist.total+' done']);
-  if(P.rarest) r.push(['Rarest answer',P.rarest.label]);
-  if(P.returning) r.push(['Membership',P.returning.label]);
-  if(P.ldpTravel) r.push(['LDP travel',P.ldpTravel.label]);
   r.push(['Your department',P.dept.name]);
   r.push(['Your project',P.project.name]);
+  if(P.basics.course) r.push(['Your course',P.basics.course+(P.basics.courseIsSolo?' · only you':' · '+P.basics.coursePct+'% of Celaville')]);
+  if(P.mbti&&P.mbti.type) r.push(['Your letters',P.mbti.type+(P.mbti.isRarest?' · one of one':' · '+P.mbti.pct+'%')]);
+  if(P.rarest) r.push(['Rarest answer',P.rarest.label]);
+  if(P.twinTotal) r.push(['Batch overlaps',P.twinTotal+' '+plural(P.twinTotal,'person','people')]);
+  if(P.mahjong) r.push(['Mahjong',P.mahjong.games+' '+plural(P.mahjong.games,'game')+' · '+P.mahjong.coins+' coins']);
+  else if(P.journey) r.push(['Events attended',P.journey.eventCount+' of '+P.journey.totalEvents]);
   r.push(['Your persona',P.persona.name]);
 
   add(0,'<p class="kicker">That’s your chapter</p>'+
