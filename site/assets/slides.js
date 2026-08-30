@@ -430,8 +430,12 @@ if(P.mbti && P.mbti.type){
       ? '<p class="sm">The most common type in Celaville this year is <span class="hl">'+esc(P.mbti.topType)+'</span>.</p>' : ''));
 }
 
-/* 8 — Fil-Chi familiarity */
-if(P.familiarity){
+/* 8 — Fil-Chi familiarity. Gated on score>=3 (out of 5): the slide frames a
+   low score as reassuring ("exactly who Celaville is built for"), but client
+   review flagged it as still likely to discourage someone with genuinely low
+   familiarity, so the safer move is to just not show the comparison rather
+   than rely on the softening copy to land right for everyone. */
+if(P.familiarity && P.familiarity.score>=3){
   var f=P.familiarity;
   add(7500,'<p class="kicker">Your roots <span class="cn">· 文化</span></p>'+
     '<p class="big">'+f.score+'<span class="unit">/5</span></p>'+
