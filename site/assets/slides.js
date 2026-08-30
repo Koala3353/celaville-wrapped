@@ -225,8 +225,7 @@ add(6500,
   '<p class="kicker"><span class="cn">下一课！</span> &nbsp;RecWeek 2026-2027</p>'+
   '<h1>Celaville</h1>'+
   '<h2>Hi '+esc(P.name)+'.</h2>'+
-  '<p>All '+P.n+' of you answered the same questions when you signed up. Here\u2019s what only you said.</p>'+
-  '<p class="sm">Every number in here came from something you wrote.</p>');
+  '<p>We asked all of you to answer the same questions\u2026 here are some fun facts about you and other Celadoneans!</p>');
 
 /* 2 — basics */
 (function(){
@@ -247,7 +246,7 @@ add(6500,
   // about them, just a stat about the org's intake shape. Dropped rather
   // than kept for symmetry.
   add(8000,'<p class="kicker">Chapter one <span class="cn">· 第一课</span></p>'+
-    '<h2>Where you enter the village</h2>'+
+    '<h2>What course do you come from?</h2>'+
     '<div class="chart">'+lines+'</div>'+
     '<p class="sm">'+(b.courseIsSolo
       ? 'You\u2019re the only '+esc(b.course)+' student who signed up this year.'
@@ -262,7 +261,7 @@ if(P.arrival && P.arrival.ways.length){
     return chartRow(esc(w.label), w.count===1?'only you':w.pct+'%', w.pct, 'leaf');
   }).join('');
   add(8000,'<p class="kicker">How you got here</p>'+
-    '<h2>The road in</h2>'+
+    '<h2>The road coming in</h2>'+
     '<div class="chart">'+aw+'</div>'+
     '<p class="sm">'+
       (P.arrival.ways[0].count===1
@@ -342,10 +341,8 @@ if(P.twins && P.twins.length){
     var frac = x.count+' of '+P.n+' in Celaville';
     t+=pictoRow(sentence, frac, pct, x.count);
   });
-  add(9000,'<p class="kicker">Your neighbours</p>'+
-    '<p class="big sm-num" data-count="'+P.twinTotal+'">0</p>'+
-    '<h2 style="margin-top:6px">'+plural(P.twinTotal,'person','people')+' already overlap with you</h2>'+
-    '<p class="sm">That\u2019s everyone who shares at least one of these with you. Each one below is its own share of everyone who signed up, not a slice of the number above.</p>'+
+  add(9000,'<p class="kicker">Your neighbors</p>'+
+    '<h2 style="margin-top:6px">See how many Celadoneans you share common qualities with!</h2>'+
     '<div class="chart">'+t+'</div>');
 }
 
@@ -374,7 +371,7 @@ addBreak(!!(P.dept || P.project),
     (d.alsoStated.length ? '<p class="sm">You also had your eye on: <span class="hl">'+d.alsoStated.map(esc).join(' · ')+'</span></p>' : '')+
     (d.openToDeputy ? '<p class="sm">You also said yes to applying as a <span class="hl-g">Deputy</span>. Watch for the call.</p>' : '')+
     (d.isOSR ? '<p class="sm">Curious how this Wrapped got made? That\u2019s OSR, the same department behind every email you\u2019ve gotten this RecWeek. Join, and they\u2019ll teach you how.</p>' : '')+
-    (d.link ? '<p><a class="photolink" href="'+esc(d.link)+'" target="_blank" rel="noopener">See the department’s RecWeek photos →</a></p>' : ''));
+    (d.link ? '<p><a class="photolink" href="'+esc(d.link)+'" target="_blank" rel="noopener">See the department’s photos →</a></p>' : ''));
 })();
 
 /* 6 — project */
@@ -392,35 +389,12 @@ addBreak(!!(P.dept || P.project),
     (p.link ? '<p><a class="photolink" href="'+esc(p.link)+'" target="_blank" rel="noopener">See the project’s RecWeek photos →</a></p>' : ''));
 })();
 
-/* ldpTravel — how far they're willing to go for the Leadership Development
-   Program, sat here in "where you fit" rather than act three, because it's a
-   logistics answer about the org (like dept/project) and not a personality
-   fact. `top` is the batch's single most common answer and can be null on a
-   thin sample, so the closing line only appears when the backend actually
-   sent one. */
-if(P.ldpTravel){
-  var lt=P.ldpTravel;
-  // Single ready-made percentage again (one answer, its own share of the
-  // batch) -- same reasoning as the returning-member gauge above. A solo
-  // pick (count===1, "only you") has no meaningful ring to draw (100% of a
-  // group of one isn't a ratio worth a meter), so that case stays plain
-  // text instead, matching the MBTI slide's own isRarest branch.
-  add(8000,'<p class="kicker">How far you’ll go <span class="cn">· LDP</span></p>'+
-    '<h2>'+esc(lt.label)+'</h2>'+
-    (lt.count===1
-      ? '<p class="big sm-num">1 of '+P.n+'</p>'
-      : '<div style="margin-top:10px">'+gauge(lt.pct,
-            lt.count+' '+plural(lt.count,'other','others'),
-            'drew the same line', 'sky')+'</div>')+
-    '<p class="sm">'+
-      (lt.count===1
-        ? 'Nobody else drew the line where you did for the Leadership Development Program.'
-        : lt.pct+'% of Celaville drew the same line for the Leadership Development Program.')+
-      (lt.top && norm(lt.top.label)!==norm(lt.label)
-        ? ' Most of Celaville said <span class="hl-g">'+esc(lt.top.label)+'</span> ('+lt.top.pct+'%).'
-        : '')+
-    '</p>');
-}
+/* ldpTravel slide intentionally removed (client review, RecWeek 2026-2027 pass):
+   surfacing how far someone is/isn't willing to travel for the Leadership
+   Development Program read as putting a number on their commitment, which
+   wasn't the intent. P.ldpTravel is still computed and sent by Code.gs (a
+   generic, harmless comparative stat -- nothing sensitive), it's just no
+   longer rendered as its own slide here. */
 
 /* ── ACT THREE: what you're like ───────────────────────────────────────*/
 // Every slide in this act needs Membership Survey data. A member who never
@@ -430,9 +404,9 @@ if(P.ldpTravel){
 addBreak(!!(P.mbti || P.familiarity || P.rarest ||
             (P.taste && P.taste.length) || P.whyJoin || P.platforms),
   'Chapter three',
-  'That\u2019s where you\u2019re headed.',
-  'Here\u2019s what you\u2019re actually like.',
-  'leaf', '\u7b2c\u4e09\u8bfe', 'long meadow');
+  'Now you\u2019ve seen where you\u2019re headed,',
+  'let\u2019s connect it to who you are!',
+  'leaf', '\u7b2c\u4e09\u8bfe', 'about you');
 
 /* 7 — MBTI. isRarest (1 of N, no meaningful ratio to meter) keeps the plain
    headline; everyone else's "% of Celaville shares it" IS a ratio against a
@@ -523,9 +497,9 @@ if(P.rarest){
           ][gi % 3]
         : g.top
           ? [
-              'Celaville mostly went for <span class="hl-g">\u201c'+esc(g.top)+'\u201d</span>, which you left off.',
-              'Nobody told you <span class="hl-g">\u201c'+esc(g.top)+'\u201d</span> was the crowd pick.',
-              '<span class="hl-g">\u201c'+esc(g.top)+'\u201d</span> won Celaville\u2019s vote without you.'
+              'Celaville mostly went for <span class="hl-g">\u201c'+esc(g.top)+'\u201d</span>.',
+              '<span class="hl-g">\u201c'+esc(g.top)+'\u201d</span> was the crowd pick.',
+              '<span class="hl-g">\u201c'+esc(g.top)+'\u201d</span> won Celaville\u2019s vote.'
             ][gi % 3]
           : '';
 
@@ -565,7 +539,7 @@ if(P.whyJoin){
     return chartRow(esc(y.label), y.pct+'% share it', y.pct);
   }).join('');
   add(8000,'<p class="kicker">Why you knocked</p>'+
-    '<h2>You came for this</h2>'+
+    '<h2>Why you joined Celadon</h2>'+
     '<div class="chart">'+mine+'</div>'+
     '<p class="sm">A longer bar means more of Celaville said the same thing.'+
     (P.whyJoin.batchTop.length
@@ -599,11 +573,11 @@ if(P.platforms && P.platforms.yours.length){
   add(8500,'<p class="kicker">How you want to hear from us</p>'+
     '<h2>Your platform ladder</h2>'+
     '<div class="ladder">'+rows+'</div>'+
-    (vb?'<p class="sm" style="margin-bottom:4px">Where Celaville put their #1 (yours in coral)</p>'+vb:'')+
+    (vb?'<p class="sm" style="margin-bottom:4px">Where Celaville put their #1</p>'+vb:'')+
     '<p class="sm">'+
       (pf.agreesWithBatch
         ? 'You put <span class="hl">'+esc(pf.top)+'</span> first, and so did most of Celaville ('+pf.batchFavPct+'%).'
-        : 'You put <span class="hl">'+esc(pf.top)+'</span> first. Celaville mostly went with <span class="hl-g">'+esc(pf.batchFav)+'</span> ('+pf.batchFavPct+'%), so you\u2019re reading us somewhere they aren\u2019t.')+
+        : 'You put <span class="hl">'+esc(pf.top)+'</span> first. Celaville mostly went with <span class="hl-g">'+esc(pf.batchFav)+'</span> ('+pf.batchFavPct+'%).')+
       (pf.rankedAll ? '' : ' You ranked '+pf.rankedCount+' of the five.')+
     '</p>');
 }
@@ -629,89 +603,31 @@ if(P.skills && (P.skills.list.length || P.skills.excel)){
     '</p>');
 }
 
-/* checklist — the actionable slide. Only renders when at least one item is
-   already ticked, so it never reads as a list of things they failed to do. */
-if(P.checklist){
-  var ck=P.checklist.items.map(function(it){
-    return '<div class="tl-row'+(it.done?'':' dim')+'"><span class="tl-node"></span>'+
-      '<div class="tl-name"'+(it.done?'':' style="opacity:.6"')+'>'+esc(it.label)+'</div>'+
-      '<div class="tl-meta">'+(it.done?'Done':esc(it.missLabel||'Not yet'))+'</div></div>';
-  }).join('');
-  // Not every unticked row is still a to-do -- an item can close (the ML
-  // tournament) rather than stay pending, so "left to finish" only counts
-  // rows the reader could actually still go do. A closed-and-missed row still
-  // shows in the timeline above with its own past-tense label; it just
-  // doesn't drive the ring caption or the "take a minute" line below.
-  var pending=P.checklist.items.filter(function(it){ return !it.done; });
-  var actionable=pending.filter(function(it){ return it.actionable!==false; });
-  var ringLabel, ringCaption;
-  if(!pending.length){ ringLabel='All done'; ringCaption='nothing left to tick off'; }
-  else if(actionable.length){ ringLabel=actionable.length+' left'; ringCaption='to finish the starter pack'; }
-  else { ringLabel=pending.length===1?'1 missed':pending.length+' missed'; ringCaption='already come and gone'; }
-  add(8000,'<p class="kicker">Your Celadon starter pack</p>'+
-    '<h2>Getting settled in</h2>'+
-    // The ring centre already reads "2 of 3", so the headline carries what's
-    // left rather than restating the same fraction.
-    donut(P.checklist.done, P.checklist.total, ringLabel, ringCaption, 'leaf')+
-    '<div class="timeline">'+ck+'</div>'+
-    '<p class="sm">'+(P.checklist.done===P.checklist.total
-      ? 'All set. You\u2019re properly in.'
-      : (actionable.length ? 'The rest take about a minute each.' : 'That one\u2019s already come and gone.'))+'</p>');
-}
+/* Checklist slide intentionally removed (client review, RecWeek 2026-2027
+   pass): even gated to only show ticked items, the ring still surfaced a
+   "1 missed" / "already come and gone" state for whichever single starter-
+   pack step someone hadn't done, which read as calling that out rather than
+   celebrating what they had done. P.checklist is still computed and sent by
+   Code.gs; it's just no longer rendered as its own slide here. */
 
 /* ── ACT FOUR: what you already did ────────────────────────────────────
    Gated: with no walk-in rows and no mahjong account there is nothing in this
    act, and announcing an empty chapter is worse than no chapter at all. */
-addBreak(!!(P.journey || P.mahjong),
+addBreak(!!P.mahjong,
   'Chapter four',
-  'Enough about plans.',
-  'Here\u2019s what you already showed up for.',
-  'ink', '\u7b2c\u56db\u8bfe', 'lantern field');
+  'Take a look back at',
+  'your journey so far.',
+  'ink', '\u7b2c\u56db\u8bfe', 'the night market');
 
-/* journey — where they actually turned up. Dates are shown when the log has
-   them and silently omitted when it doesn't, because the walk-in sheets are
-   partly filled in by hand and a blank Timestamp must never render as a
-   broken or invented date. */
-if(P.journey){
-  var jr=P.journey;
-  var rows=jr.events.map(function(e){
-    var meta=[];
-    if(e.visits>1) meta.push(e.visits+' visits');
-    if(e.first) meta.push('first on '+esc(e.first));
-    if(e.pct) meta.push(e.pct+'% of Celaville came');
-    return '<div class="tl-row"><span class="tl-node"></span>'+
-      '<div class="tl-name">'+esc(e.label.replace(/^the /,''))+'</div>'+
-      (meta.length?'<div class="tl-meta">'+meta.join(' &middot; ')+'</div>':'')+
-    '</div>';
-  }).join('');
-  add(9000,'<p class="kicker">Your first steps <span class="cn">· 足迹</span></p>'+
-    '<p class="big sm-num" data-count="'+jr.totalVisits+'">0</p>'+
-    '<h2 style="margin-top:6px">'+(jr.totalVisits===1?'time you showed up':'times you showed up')+'</h2>'+
-    // Cumulative visits over time. Omitted when fewer than two dated visits
-    // exist, which lineChart() decides for itself.
-    lineChart(jr.series)+
-    '<div class="timeline">'+rows+'</div>'+
-    '<p class="sm">'+
-      (jr.firstDate
-        ? 'It started on <span class="hl">'+esc(jr.firstDate)+'</span>, at '+esc(jr.firstLabel)+'. '
-        : '')+
-      (jr.spanDays>0
-        ? 'From first to latest, that is <span class="hl">'+jr.spanDays+' '+plural(jr.spanDays,'day')+'</span> of showing up. '
-        : '')+
-      (jr.wentToAll
-        ? 'And you made it to every single one.'
-        : 'That\u2019s '+jr.eventCount+' of '+jr.totalEvents+'.')+
-    '</p>'+
-    '<p class="sm">'+
-      (jr.moreThanPct>=50
-        ? 'You turned up more often than <span class="hl">'+jr.moreThanPct+'%</span> of Celaville.'
-        : 'You were one of '+jr.batchWhoCame+' who came to anything at all.')+
-      (jr.eventTwins>0
-        ? ' <span class="hl-g">'+jr.eventTwins+'</span> '+plural(jr.eventTwins,'other','others')+
-          ' '+(jr.eventTwins===1?'was':'were')+' in the room with you.'
-        : '')+
-    '</p>');
-}
+/* Journey/attendance slide intentionally removed (client review, RecWeek
+   2026-2027 pass): stating "you turned up more often than 73% of Celaville"
+   (or the inverse) reads as scoring attendance, and the brief is explicit
+   that no one should feel penalized for not attending every single day.
+   P.journey is still computed and sent by Code.gs (the recap slide's own
+   fallback -- "Events attended: N of M" -- still reads it as one plain-fact
+   line among several, which is a different thing than a whole slide built
+   around ranking how often someone showed up); it's just no longer rendered
+   as its own slide here. */
 
 /* mahjong — celebratory by design. Wins are shown when there are wins;
    losses are never shown and no W/L ratio is computed, so a member who went
@@ -777,8 +693,7 @@ if(P.mahjong && (P.mahjong.ownedList.length>1 || P.mahjong.daysSince>0)){
       '<div class="pname">'+esc(pe.name)+'</div>'+
       '<div class="peyebrow">Celaville</div>'+
     '</div></div>'+
-    '<p style="text-align:center">'+esc(pe.blurb)+'</p>'+
-    '<p class="sm" style="text-align:center">Your own answers picked this one. Nothing was left to chance.</p>',
+    '<p style="text-align:center">'+esc(pe.blurb)+'</p>',
     'v-persona' /* marker class only -- no CSS hooks off it; app.js uses it to
                    fire the 30ms persona-reveal haptic (navigator.vibrate) */);
 })();
