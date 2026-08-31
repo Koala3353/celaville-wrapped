@@ -360,6 +360,12 @@ addBreak(!!(P.dept || P.project),
 /* 5 — department */
 (function(){
   var d=P.dept;
+  // This slide is a fit, not a placement -- nobody's actually IN a
+  // department off the back of a Wrapped slide, whether it was stated or
+  // just read off the rest of their answers. Said plainly and
+  // unconditionally (not folded into the openToDeputy-only line above it),
+  // so nobody walks away thinking a form answer already made this official.
+  var deputyNote='<p class="sm">Keep a lookout for deputy applications coming soon — that’s your chance to make it official.</p>';
   add(8500,'<p class="kicker">Where you belong <span class="cn">· 部门</span></p>'+
     '<h2>'+esc(d.name)+'</h2>'+
     '<p>'+esc(d.blurb)+'</p>'+
@@ -371,6 +377,7 @@ addBreak(!!(P.dept || P.project),
     (d.alsoStated.length ? '<p class="sm">You also had your eye on: <span class="hl">'+d.alsoStated.map(esc).join(' · ')+'</span></p>' : '')+
     (d.openToDeputy ? '<p class="sm">You also said yes to applying as a <span class="hl-g">Deputy</span>. Watch for the call.</p>' : '')+
     (d.isOSR ? '<p class="sm">Curious how this Wrapped got made? That\u2019s OSR, the same department behind every email you\u2019ve gotten this RecWeek. Join, and they\u2019ll teach you how.</p>' : '')+
+    deputyNote+
     (d.link ? '<p><a class="photolink" href="'+esc(d.link)+'" target="_blank" rel="noopener">See the department’s photos →</a></p>' : ''));
 })();
 
