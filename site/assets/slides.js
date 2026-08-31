@@ -688,7 +688,6 @@ if(P.mahjong && (P.mahjong.ownedList.length>1 || P.mahjong.daysSince>0)){
     '<div class="polaroid">'+
       '<div class="p-amb p-amb-'+esc(pe.key)+'" aria-hidden="true"><i class="p-amb-a"></i><i class="p-amb-b"></i><i class="p-amb-c"></i></div>'+
       '<div class="polaroid-card">'+
-      '<div class="tag" style="color:'+pe.color+'">乡</div>'+
       '<div class="pname">'+esc(pe.name)+'</div>'+
       '<div class="peyebrow">Celaville</div>'+
     '</div></div>'+

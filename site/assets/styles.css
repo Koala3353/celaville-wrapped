@@ -988,7 +988,6 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
 .polaroid-card::before{content:'';position:absolute;inset:0;pointer-events:none;filter:url(#rough-edge);
   border:2.5px solid var(--ink-strong);
   border-radius:70px 18px 62px 18px/18px 62px 18px 70px;}
-.polaroid .tag{font-family:'Kaiti SC','STKaiti','KaiTi','楷体',serif;font-size:34px;line-height:1;margin-bottom:8px}
 .polaroid .pname{font-family:'Grandstander';font-weight:800;font-size:clamp(17px,5.4vw,26px);font-size:clamp(17px,5.4cqw,26px);color:var(--ink);
   line-height:1.15;overflow-wrap:break-word;hyphens:auto}
 .polaroid .peyebrow{font-family:'Montserrat';font-size:10.5px;font-weight:700;letter-spacing:.2em;
@@ -1395,7 +1394,6 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
   .quote{font-size:16.5px;line-height:1.6}
   .meter{height:8px;margin-top:6px}
   .polaroid{width:min(260px,82vw);width:min(260px,82cqw);margin-bottom:14px}
-  .polaroid .tag{font-size:28px}
   #hint{bottom:calc(16px + env(safe-area-inset-bottom))}
   .btn{padding:13px 18px;font-size:16px}
 }
@@ -1403,7 +1401,6 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
   .inner{padding:50px 18px 58px}
   .card{padding:10px 13px;margin-bottom:8px}
   .polaroid{width:min(230px,80vw);width:min(230px,80cqw)}
-  .polaroid .tag{font-size:22px}
   .kicker{margin-bottom:10px}
   /* #walker is sized by height, so on a short frame it eats a much bigger
      share of the vertical space and starts overlapping #hint just above
@@ -1436,7 +1433,6 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
     .quote{font-size:16.5px;line-height:1.6}
     .meter{height:8px;margin-top:6px}
     .polaroid{width:min(260px,82vw);width:min(260px,82cqw);margin-bottom:14px}
-    .polaroid .tag{font-size:28px}
     #hint{bottom:calc(16px + env(safe-area-inset-bottom))}
     .btn{padding:13px 18px;font-size:16px}
   }
@@ -1444,7 +1440,6 @@ p{font-size:17px;line-height:1.6;margin:0 0 14px;color:var(--ink);opacity:.85}
     .inner{padding:50px 18px 58px}
     .card{padding:10px 13px;margin-bottom:8px}
     .polaroid{width:min(230px,80vw);width:min(230px,80cqw)}
-    .polaroid .tag{font-size:22px}
   }
 }
 

@@ -370,14 +370,23 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
 
   // Midground, drawn BEFORE the near hill so it sits half behind the
   // foreground rise, same trick the tree already used.
+  //
+  // Placed on the RIGHT half on purpose: the near band's house/fence
+  // cluster below sits on the LEFT half (see houseOx), and the two used to
+  // share almost the same x (both ~W*0.34) -- close enough to read as one
+  // asset stacked behind the other rather than two separate points of
+  // interest in the scene. Opposite halves plus a second tree on the near
+  // band's right (below) turns the empty middle into a deliberate clearing
+  // -- a path through the village -- instead of an accidental gap with
+  // everything bunched to one side and nothing past it.
   if(hasMahjong){
-    drawPavilionAsset_(x,W*0.34,midBase-55*1.6,1.6);
+    drawPavilionAsset_(x,W*0.68,midBase-55*1.6,1.6);
   } else {
-    drawSmallHouseAsset_(x,W*0.28,midBase-45*1.35,1.35,'#E4B64A');
-    drawSmallHouseAsset_(x,W*0.40,midBase-45*1.15,1.15,'#5E8F6B');
+    drawSmallHouseAsset_(x,W*0.62,midBase-45*1.35,1.35,'#E4B64A');
+    drawSmallHouseAsset_(x,W*0.74,midBase-45*1.15,1.15,'#5E8F6B');
   }
   var sTree=1.5;
-  drawTree_(x,W*0.66,(midBase-8)-52*sTree,sTree);
+  drawTree_(x,W*0.20,(midBase-8)-52*sTree,sTree);
 
   // near hill: the leaf-green foreground the house, fence and lantern posts
   // stand on -- filled all the way to H, so there is no flat paper strip
@@ -389,12 +398,42 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   drawTuft_(x,nearPts[5][0],nearPts[5][1],26,20,'#527D5E');
   drawTuft_(x,nearPts[18][0],nearPts[18][1],24,18,'#527D5E');
 
+  // Ground-anchor every standing asset to the REAL ridge line (nearPts),
+  // not the flat `nearBase` the fill's own moveTo starting point uses.
+  // nearBase turned out to sit past the card's own rounded-corner clip
+  // (measured live: nearBase=1930 on a 1920-tall canvas whose clip bottom
+  // is H-46=1874 -- 56px of "ground" that was never actually visible) --
+  // fine for the fill itself (it always extends to H regardless, clipped
+  // or not) but wrong for anything anchored to it as if it were an
+  // on-screen line: the fence and the second tree below landed entirely
+  // past the clip and simply never rendered, confirmed by logging their
+  // real coordinates rather than guessing from the image alone. The
+  // wavy ridge itself (nearPts) sits comfortably inside the clip -- it's
+  // the actual visible line, so anchor to it instead.
+  function ridgeYAt_(pts,xPos){
+    for(var i=1;i<pts.length;i++){
+      if(xPos<=pts[i][0]){
+        var t=(xPos-pts[i-1][0])/(pts[i][0]-pts[i-1][0]);
+        return pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t;
+      }
+    }
+    return pts[pts.length-1][1];
+  }
   var sHouse=2.3, sFence=1.5, sLantern=1.5;
-  var houseOx=W*0.34;
-  drawHouse_(x,houseOx,nearBase-64*sHouse,sHouse);
+  var houseOx=W*0.20;
+  var houseGroundY=ridgeYAt_(nearPts,houseOx+38*sHouse);
+  drawHouse_(x,houseOx,houseGroundY-64*sHouse,sHouse);
   var fenceOx=houseOx+76*sHouse+16;
-  drawPicket_(x,fenceOx,nearBase-29.4*sFence,sFence);
-  drawPicket_(x,fenceOx+13*sFence,nearBase-29.4*sFence,sFence);
+  var fenceGroundY=ridgeYAt_(nearPts,fenceOx+7*sFence);
+  drawPicket_(x,fenceOx,fenceGroundY-29.4*sFence,sFence);
+  drawPicket_(x,fenceOx+13*sFence,fenceGroundY-29.4*sFence,sFence);
+  // Second, smaller near-band tree balancing the right side, roughly under
+  // the mid-band pavilion/houses above -- without it, that whole side of
+  // the frame had nothing between the pavilion and the right lantern post,
+  // a large dead gap of plain hillside.
+  var sTree2=0.85, treeX2=W*0.80;
+  var tree2GroundY=ridgeYAt_(nearPts,treeX2+12*sTree2);
+  drawTree_(x,treeX2,tree2GroundY-52*sTree2,sTree2);
 
   // Lantern posts flanking the village -- the Festivalgoer persona's own
   // motif (the same silhouette as the header's #lantern and the recap's
@@ -410,8 +449,17 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   // right post keeps its old placement: that corner's radius is 120px, a
   // much gentler curve reaching far further up, and a real render shows no
   // equivalent clipping there.
-  drawLanternPostAsset_(x,100,nearBase-30*sLantern,sLantern);
-  drawLanternPostAsset_(x,W*0.90,nearBase-30*sLantern,sLantern);
+  //
+  // Y also switched from flat `nearBase` to the real ridge line
+  // (ridgeYAt_/nearPts) for the same reason the house/fence/second tree
+  // did above -- nearBase-30*sLantern landed at ~1885 on this render, past
+  // the clip's real bottom (1874), so both lantern posts were rendering
+  // entirely outside the visible card this whole time. Not a regression
+  // from anything touched today; just never actually checked for until the
+  // house/fence one was.
+  var lanternLX=100, lanternRX=W*0.90;
+  drawLanternPostAsset_(x,lanternLX,ridgeYAt_(nearPts,lanternLX+9*sLantern)-30*sLantern,sLantern);
+  drawLanternPostAsset_(x,lanternRX,ridgeYAt_(nearPts,lanternRX+9*sLantern)-30*sLantern,sLantern);
 
   x.restore(); // lifts the clip -- border strokes and text below draw unclipped
 }
@@ -579,18 +627,9 @@ function drawShareCard(){
   // rectangle: plain centred text has no edges to misjudge, and a short
   // centred rule below it is trivially symmetric by construction (it's
   // just a line from cx-70 to cx+70).
-  var y=650;
+  var y=684;
   if(P.persona){
     var pColor=personaTextColor_(P.persona.color);
-
-    // Small Kaiti glyph in the persona's own color, echoing the exact tag
-    // the persona SLIDE itself shows (styles.css's .tag) -- the card then
-    // reads as a callback to a moment the reader already saw, not a new
-    // visual language invented just for the share image.
-    x.font='400 52px "Kaiti SC","STKaiti","KaiTi","楷体",serif';
-    x.fillStyle=pColor;
-    x.fillText('乡', cx, y);
-    y+=72;
 
     x.font='800 76px Grandstander, sans-serif';
     var pl=wrapText(x,P.persona.name,W-260);
