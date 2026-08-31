@@ -358,7 +358,17 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   // motif (the same silhouette as the header's #lantern and the recap's
   // floating lanterns), so the scene reads as festival-lit at both edges
   // instead of just populated in the middle.
-  drawLanternPostAsset_(x,W*0.05,nearBase-30*sLantern,sLantern);
+  //
+  // The left post's x used to be W*0.05 (54px): with the card's own rounded
+  // frame clip at x=46 and a bottom-left corner radius of only 30px, the
+  // clip boundary curves inward to x=76 over the last 30px of height --
+  // right where this asset's base sits -- so its left edge got sliced off
+  // (confirmed against a real render: a stray sliver visible at the card's
+  // bottom-left corner). 100px clears that curve with margin to spare. The
+  // right post keeps its old placement: that corner's radius is 120px, a
+  // much gentler curve reaching far further up, and a real render shows no
+  // equivalent clipping there.
+  drawLanternPostAsset_(x,100,nearBase-30*sLantern,sLantern);
   drawLanternPostAsset_(x,W*0.90,nearBase-30*sLantern,sLantern);
 
   x.restore(); // lifts the clip -- border strokes and text below draw unclipped
@@ -383,13 +393,32 @@ function drawPostmark_(x,W,H){
     var px=cx+Math.cos(a)*r, py=cy+Math.sin(a)*r;
     x.beginPath(); x.arc(px,py,6,0,Math.PI*2); x.fill();
   }
-  // cancellation mark: a faint ring plus two strike lines, ink-brown at low
-  // alpha so it reads as a postmark ghost, not a competing focal point.
-  x.strokeStyle='rgba(79,64,54,.28)'; x.lineWidth=2;
-  x.beginPath(); x.arc(cx-8,cy+14,24,0,Math.PI*2); x.stroke();
-  x.beginPath(); x.moveTo(cx-46,cy-4); x.lineTo(cx+14,cy+22); x.stroke();
-  x.beginPath(); x.moveTo(cx-40,cy+6); x.lineTo(cx+20,cy+32); x.stroke();
+  // The cancellation mark that used to sit here (a faint ring plus two
+  // strike lines, meant to read as a postmark ghost) instead read as a
+  // no-entry / blocked-action glyph at a glance -- a circle with a diagonal
+  // line through it is exactly that icon's shape, regardless of intent.
+  // Removed rather than softened further: the perforation notches above
+  // already carry the "postmark" idea on their own.
   x.restore();
+}
+
+/* P.persona.color is one of the raw BRAND fill hexes (coral/leaf/sky/
+   yellow -- the only four any persona actually uses), not its accessible
+   -Text sibling. Fine for a small tag glyph or a card wash, not fine as the
+   card's largest headline text: BRAND's own comment measures sky at 1.62:1
+   and yellow at 1.85:1 against paper, both hard WCAG fails, which is why
+   BRAND ships an accessible -Text variant of each in the first place. This
+   maps the raw hex to that sibling so the persona name can be colored
+   in-brand without the exact contrast problem sky-legible headings
+   elsewhere already had to fix once. */
+var PERSONA_TEXT_COLOR_ = {
+  '#D94F40': '#C9493B', // coral -> coralText
+  '#5E8F6B': '#527D5E', // leaf -> leafText
+  '#9FD0EB': '#5C7888', // sky -> skyText
+  '#E4B64A': '#8D702D', // yellow -> yellowText
+};
+function personaTextColor_(hex){
+  return PERSONA_TEXT_COLOR_[String(hex||'').toUpperCase()] || hex || '#4F4036';
 }
 
 /* #RRGGBB -> rgba(...) string, so a brand hex token can be dropped in at a
@@ -508,12 +537,23 @@ function drawShareCard(){
   // just a line from cx-70 to cx+70).
   var y=650;
   if(P.persona){
+    var pColor=personaTextColor_(P.persona.color);
+
+    // Small Kaiti glyph in the persona's own color, echoing the exact tag
+    // the persona SLIDE itself shows (styles.css's .tag) -- the card then
+    // reads as a callback to a moment the reader already saw, not a new
+    // visual language invented just for the share image.
+    x.font='400 52px "Kaiti SC","STKaiti","KaiTi","楷体",serif';
+    x.fillStyle=pColor;
+    x.fillText('乡', cx, y);
+    y+=72;
+
     x.font='800 76px Grandstander, sans-serif';
     var pl=wrapText(x,P.persona.name,W-260);
-    x.fillStyle='#4F4036';
+    x.fillStyle=pColor;
     for(var i=0;i<pl.length;i++){ x.fillText(pl[i],cx,y); y+=88; }
     y+=6;
-    x.strokeStyle='#D94F40'; x.lineWidth=4; x.lineCap='round';
+    x.strokeStyle=pColor; x.lineWidth=4; x.lineCap='round';
     x.beginPath(); x.moveTo(cx-70,y); x.lineTo(cx+70,y); x.stroke();
     y+=64;
   }
