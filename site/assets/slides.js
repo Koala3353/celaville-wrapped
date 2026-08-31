@@ -566,18 +566,13 @@ if(P.platforms && P.platforms.yours.length){
         '<span class="ladder-bar"><i style="--w:'+w+'%"></i></span>'+
       '</span></div>';
   }).join('');
-  // Bars = how many people put each platform first, with the member's own #1
-  // highlighted. Counts of people, so the heights mean the same thing across
-  // every bar; average rank would have inverted the scale.
-  var vb = (pf.batchTopCounts && pf.batchTopCounts.length>1)
-    ? vbars(pf.batchTopCounts.map(function(c){
-        return { label:c.label, value:c.count, me: norm(c.label)===norm(pf.top) };
-      }))
-    : '';
+  // The batch's own #1-platform counts used to render as a second chart
+  // (vbars) directly below the ladder -- dropped as a duplicate view of the
+  // same fact the closing sentence already states in prose (which platform
+  // most of Celaville put first, and by how much), just re-drawn as bars.
   add(8500,'<p class="kicker">How you want to hear from us</p>'+
     '<h2>Your platform ladder</h2>'+
     '<div class="ladder">'+rows+'</div>'+
-    (vb?'<p class="sm" style="margin-bottom:4px">Where Celaville put their #1</p>'+vb:'')+
     '<p class="sm">'+
       (pf.agreesWithBatch
         ? 'You put <span class="hl">'+esc(pf.top)+'</span> first, and so did most of Celaville ('+pf.batchFavPct+'%).'

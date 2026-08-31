@@ -444,12 +444,17 @@ body.paused #walker{animation-play-state:paused}
    these two can react to it) blend toward --paper as the walk nears night,
    via color-mix -- so the text simply gets an appropriately lighter fill
    the moment the sky underneath goes dark, no glow required. --sky-fade
-   stays at 0% (no shift at all) through sunrise/morning/midday/golden --
-   the only backgrounds actually risky are the last ~1/4 of --dusk-glow's
-   range (dusk's #CFC6D8 is still borderline-light; night's #4B4771 is not),
-   which is why the ramp only starts past .72. */
+   stays at 0% (no shift at all) through sunrise/morning/midday/golden and
+   almost all of dusk -- verified directly against the TOD stops (app.js):
+   dusk itself is warm .92 with a sky-top of #CFC6D8, still a light lavender,
+   and only night (warm 1.0, #4B4771) is genuinely dark. An earlier .72
+   threshold started fading headings a third of the story too early --
+   confirmed live on the platform-ladder/skills slides (warm .81/.88 there),
+   both comfortably light backgrounds, both already visibly washed-out
+   before this fix. .90 sits just past dusk, so only the final approach into
+   true night ever fades a heading now. */
 #frame{
-  --sky-fade: clamp(0%, calc((var(--dusk-glow,0) - .72) * 380%), 100%);
+  --sky-fade: clamp(0%, calc((var(--dusk-glow,0) - .90) * 1000%), 100%);
   --onsky-ink: color-mix(in srgb, var(--ink), var(--paper) var(--sky-fade));
   --onsky-coral: color-mix(in srgb, var(--coral-text), var(--paper) var(--sky-fade));
 }
