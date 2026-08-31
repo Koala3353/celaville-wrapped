@@ -301,6 +301,47 @@ function drawShareSky_(x,W,H){
    pavilion for the mid band (tied to a real stat on the card, not just
    decoration) when that stat made shareStats()'s cut; otherwise a small
    cluster of the background village houses fills that band instead. */
+/* An organic, many-undulation ridge line, not two smooth bezier arcs. The
+   on-page village's real SVG hills (index.html, #vfar/#vmid/#vnear) are
+   ALSO flat single-color fills, no gradients -- checked directly against
+   their source paths before assuming otherwise. The actual gap between
+   "the wrapped's background" and "the share card's background" is silhouette
+   complexity: the real ridge is dozens of small bezier segments (an
+   organic, hand-drawn-feeling line), while this card drew each band as a
+   single smooth double-arc, which reads as a generic soft blob by
+   comparison at the same flat-fill color. Two summed sine waves at
+   different frequencies/phases produce that same many-undulation quality
+   deterministically (no Math.random -- this has to render identically
+   every time the same payload is drawn), quadratic-curved through in
+   segments so the joins themselves stay smooth rather than faceted. */
+function hillRidgePath_(x,W,baseY,amp1,amp2,freq1,freq2,phase){
+  var N=22, pts=[];
+  for(var i=0;i<=N;i++){
+    var t=i/N;
+    var y=baseY+amp1*Math.sin(t*Math.PI*freq1+phase)+amp2*Math.sin(t*Math.PI*freq2+phase*1.7+1.1);
+    pts.push([t*W,y]);
+  }
+  x.moveTo(pts[0][0],pts[0][1]);
+  for(var i=1;i<pts.length;i++){
+    var midX=(pts[i-1][0]+pts[i][0])/2, midY=(pts[i-1][1]+pts[i][1])/2;
+    x.quadraticCurveTo(pts[i-1][0],pts[i-1][1],midX,midY);
+  }
+  x.quadraticCurveTo(pts[N][0],pts[N][1],pts[N][0],pts[N][1]);
+  return pts;
+}
+/* A small grass-tuft clump sitting on a ridge line -- the same shape and
+   role as the tufts already inked onto the real #vfar path (index.html),
+   just parameterized so it can be dropped at any (x,y) here. Filled a
+   shade darker than the hill it sits on, per the on-page version. */
+function drawTuft_(x,cx,cy,w,h,fill){
+  x.beginPath();
+  x.moveTo(cx-w/2,cy);
+  x.quadraticCurveTo(cx-w/2-2,cy-h, cx,cy-h*1.15);
+  x.quadraticCurveTo(cx+w/2+2,cy-h, cx+w/2,cy);
+  x.closePath();
+  x.fillStyle=fill; x.fill();
+}
+
 function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   var farTop=sceneryTop, farBase=sceneryTop+60,
       midTop=farBase, midBase=farBase+75,
@@ -311,21 +352,21 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   x.clip();
 
   // far hill: a soft, low sage ridge
-  x.fillStyle='#A8C59A';
-  x.beginPath(); x.moveTo(0,farBase);
-  x.bezierCurveTo(W*0.22,farTop-14, W*0.36,farBase+10, W*0.5,farTop);
-  x.bezierCurveTo(W*0.68,farTop-16, W*0.82,farBase+8, W,farTop+6);
-  x.lineTo(W,H); x.lineTo(0,H); x.closePath(); x.fill();
+  x.beginPath();
+  var farPts=hillRidgePath_(x,W,(farTop+farBase)/2,16,7,2.6,5.3,0.4);
+  x.lineTo(W,H); x.lineTo(0,H); x.closePath();
+  x.fillStyle='#A8C59A'; x.fill();
+  drawTuft_(x,farPts[7][0],farPts[7][1],20,16,'#93B587');
+  drawTuft_(x,farPts[15][0],farPts[15][1],18,14,'#93B587');
 
   // mid hill: a step darker/greener than the far ridge, a step lighter than
   // the near band -- the same depth gradient the on-page panorama uses
   // (sage far, leaf near), with one more rung so the midground has
   // somewhere of its own to stand.
-  x.fillStyle='#8FB08B';
-  x.beginPath(); x.moveTo(0,midBase);
-  x.bezierCurveTo(W*0.18,midTop-10, W*0.4,midBase+14, W*0.58,midTop+4);
-  x.bezierCurveTo(W*0.76,midTop-8, W*0.9,midBase+10, W,midTop+8);
-  x.lineTo(W,H); x.lineTo(0,H); x.closePath(); x.fill();
+  x.beginPath();
+  var midPts=hillRidgePath_(x,W,(midTop+midBase)/2,18,8,2.2,4.6,2.1);
+  x.lineTo(W,H); x.lineTo(0,H); x.closePath();
+  x.fillStyle='#8FB08B'; x.fill();
 
   // Midground, drawn BEFORE the near hill so it sits half behind the
   // foreground rise, same trick the tree already used.
@@ -341,11 +382,12 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   // near hill: the leaf-green foreground the house, fence and lantern posts
   // stand on -- filled all the way to H, so there is no flat paper strip
   // between anyone's feet and the card's actual bottom edge.
-  x.fillStyle='#5E8F6B';
-  x.beginPath(); x.moveTo(0,nearBase-90);
-  x.bezierCurveTo(W*0.2,nearTop-20, W*0.34,nearTop+18, W*0.5,nearTop+2);
-  x.bezierCurveTo(W*0.66,nearTop-14, W*0.8,nearTop+22, W,nearTop+8);
-  x.lineTo(W,H); x.lineTo(0,H); x.closePath(); x.fill();
+  x.beginPath();
+  var nearPts=hillRidgePath_(x,W,(nearTop+nearBase-90)/2,26,11,1.8,3.9,4.3);
+  x.lineTo(W,H); x.lineTo(0,H); x.closePath();
+  x.fillStyle='#5E8F6B'; x.fill();
+  drawTuft_(x,nearPts[5][0],nearPts[5][1],26,20,'#527D5E');
+  drawTuft_(x,nearPts[18][0],nearPts[18][1],24,18,'#527D5E');
 
   var sHouse=2.3, sFence=1.5, sLantern=1.5;
   var houseOx=W*0.34;
