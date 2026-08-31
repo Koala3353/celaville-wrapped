@@ -440,7 +440,7 @@ function hexA_(hex,a){
 function drawStatIcon_(x,key,cx,cy,r,fill,ink){
   x.save();
   x.lineJoin='round'; x.lineCap='round';
-  x.fillStyle=fill; x.strokeStyle=ink; x.lineWidth=3;
+  x.fillStyle=fill; x.strokeStyle=ink; x.lineWidth=2;
   if(key==='dept'){
     // a little roof-and-door house -- department is "where you belong"
     x.beginPath();
@@ -500,13 +500,15 @@ function drawShareCard(){
   x.fillStyle='#FFFCF7'; x.fillRect(0,0,W,H);
   drawShareSky_(x,W,H);
 
-  // wobbly ink frame, mirroring the on-screen card's asymmetric radii
-  x.strokeStyle='rgba(79,64,54,.7)'; x.lineWidth=7;
+  // A single fine outer line, mirroring the on-screen card's asymmetric
+  // radii. The dashed inner border that used to sit inside this (a
+  // scrapbook/craft-paper "stitching" motif) is dropped entirely, and the
+  // outer stroke itself thinned from 7px to 2.5px -- a card meant to be
+  // screenshotted at phone-display size reads the old weight as a thick
+  // cartoon outline, not a frame.
+  x.strokeStyle='rgba(79,64,54,.5)'; x.lineWidth=2.5;
   roundRectPath(x,46,46,W-92,H-92,[132,30,120,30]);
   x.stroke();
-  x.strokeStyle='#EDE4D4'; x.lineWidth=3; x.setLineDash([10,12]);
-  roundRectPath(x,78,78,W-156,H-156,[112,22,104,22]);
-  x.stroke(); x.setLineDash([]);
 
   drawPostmark_(x,W,H);
 
@@ -575,27 +577,33 @@ function drawShareCard(){
     var bx=gx+col*(colW+gap), by=y+row*(cardH+gap);
     var tint=COLORS[r.color]||'#6B5D51';
 
-    // Consistent ink-brown border on every card regardless of category tint
-    // (the previous translucent colored stroke read as disconnected from
-    // the flat ink-outline language everything else on the card uses),
-    // plus a small ribbon tab straddling the top edge so the tint still
-    // carries a clear category read at a glance.
-    roundRectPath(x,bx,by,colW,cardH,[20,20,20,20]);
-    x.fillStyle=hexA_(tint,.14); x.fill();
-    x.strokeStyle='#4F4036'; x.lineWidth=2.4; x.stroke();
-    roundRectPath(x,bx+18,by-9,54,18,[3,3,3,3]);
-    x.fillStyle=tint; x.fill();
-    x.strokeStyle='#4F4036'; x.lineWidth=1.6; x.stroke();
+    // A thick solid ink border plus a floating ribbon tab straddling the
+    // top edge read as a craft-paper sticker, not a stat tile -- the two
+    // together were the single biggest source of the "plastic and
+    // cartoony" read. Replaced with the language an actual premium stat
+    // card uses: a near-hairline border (barely there, just enough to
+    // separate the tile from the sky behind it), a quiet fill, and the
+    // category color concentrated into one small icon swatch instead of
+    // smeared across a whole tab.
+    roundRectPath(x,bx,by,colW,cardH,[24,24,24,24]);
+    x.fillStyle=hexA_(tint,.08); x.fill();
+    x.strokeStyle='rgba(79,64,54,.16)'; x.lineWidth=1.5; x.stroke();
 
-    drawStatIcon_(x, r.key, bx+52, by+66, 26, tint, '#4F4036');
+    // Icon swatch: a soft tint-colored disc, not a floating outlined glyph
+    // -- the icon itself carries full-strength color against it instead of
+    // needing its own heavy ink outline to read.
+    var ix=bx+54, iy=by+58;
+    x.beginPath(); x.arc(ix,iy,30,0,Math.PI*2);
+    x.fillStyle=hexA_(tint,.24); x.fill();
+    drawStatIcon_(x, r.key, ix, iy, 21, tint, '#4F4036');
 
-    x.fillStyle='#6B5D51'; x.font='700 21px Montserrat, sans-serif';
-    x.fillText(r.label.toUpperCase(), bx+26, by+112);
+    x.fillStyle='#8A7A6C'; x.font='700 20px Montserrat, sans-serif';
+    x.fillText(r.label.toUpperCase(), bx+26, by+118);
 
-    x.fillStyle='#4F4036'; x.font='800 33px Grandstander, sans-serif';
+    x.fillStyle='#4F4036'; x.font='800 32px Grandstander, sans-serif';
     var vl=wrapText(x,r.value,colW-52).slice(0,2);
-    var vy=by+152;
-    vl.forEach(function(l){ x.fillText(l,bx+26,vy); vy+=39; });
+    var vy=by+157;
+    vl.forEach(function(l){ x.fillText(l,bx+26,vy); vy+=38; });
   });
   y += Math.ceil(rows.length/2)*(cardH+gap) + 6;
 
@@ -625,7 +633,7 @@ function drawShareCard(){
 
   roundRectPath(x, cx-footerW/2, footerCy-footerH/2, footerW, footerH, [30,10,26,10]);
   x.fillStyle='rgba(255,252,247,.94)'; x.fill();
-  x.strokeStyle='#4F4036'; x.lineWidth=2.6; x.stroke();
+  x.strokeStyle='rgba(79,64,54,.4)'; x.lineWidth=1.8; x.stroke();
   x.textAlign='center';
   x.fillStyle='#C9493B'; x.font='800 34px Grandstander, sans-serif';
   x.fillText('Start the next chapter with Celadon', cx, footerCy-14);
