@@ -523,7 +523,7 @@ if(P.rarest){
     // dice-pip glyphs would be icon-like unicode on a themed surface — an
     // ink-bordered index numeral does the same "which tile is this" job.
     add(7500,
-      '<p class="kicker">At the dice table <span class="cn">· 骰子</span></p>'+
+      '<p class="kicker">At the dice table <span class="cn">· 跋中秋</span></p>'+
       '<h2>What you’re playing for</h2>'+
       '<div class="tiles">'+g.picks.map(function(p,i){
         return '<div class="tile"><span class="no">'+(i+1)+'</span>'+
