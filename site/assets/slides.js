@@ -365,7 +365,12 @@ addBreak(!!(P.dept || P.project),
   // just read off the rest of their answers. Said plainly and
   // unconditionally (not folded into the openToDeputy-only line above it),
   // so nobody walks away thinking a form answer already made this official.
-  var deputyNote='<p class="sm">Keep a lookout for deputy applications coming soon — that’s your chance to make it official.</p>';
+  var deputyNote='<p class="sm">Keep a lookout for deputy applications coming soon — that’s your chance to make it official.</p>'+
+    // Department-only signup, deliberately not reused on the project slide
+    // below -- deputy-appform is specifically for departments, and project
+    // applications (Core Team) are a separate process with no live link
+    // handed over yet.
+    '<a class="btn ghost" style="margin-top:10px;display:inline-block" href="https://ateneoceladon.com/deputy-appform" target="_blank" rel="noopener">Apply as Deputy →</a>';
   add(8500,'<p class="kicker">Where you belong <span class="cn">· 部门</span></p>'+
     '<h2>'+esc(d.name)+'</h2>'+
     '<p>'+esc(d.blurb)+'</p>'+
