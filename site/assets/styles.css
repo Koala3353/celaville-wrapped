@@ -440,21 +440,26 @@ body.paused #walker{animation-play-state:paused}
    heading size the blur reads as a smudged glow around the letterforms,
    not "readable text," which is a worse result than the bug. The actual
    fix is to change the ink itself: --onsky-ink/--onsky-coral (declared on
-   #frame, where app.js's paintVillage() actually writes --dusk-glow so
-   these two can react to it) blend toward --paper as the walk nears night,
-   via color-mix -- so the text simply gets an appropriately lighter fill
-   the moment the sky underneath goes dark, no glow required. --sky-fade
-   stays at 0% (no shift at all) through sunrise/morning/midday/golden and
-   almost all of dusk -- verified directly against the TOD stops (app.js):
-   dusk itself is warm .92 with a sky-top of #CFC6D8, still a light lavender,
-   and only night (warm 1.0, #4B4771) is genuinely dark. An earlier .72
-   threshold started fading headings a third of the story too early --
-   confirmed live on the platform-ladder/skills slides (warm .81/.88 there),
-   both comfortably light backgrounds, both already visibly washed-out
-   before this fix. .90 sits just past dusk, so only the final approach into
-   true night ever fades a heading now. */
+   #frame) blend toward --paper as the walk nears night, via color-mix --
+   so the text simply gets an appropriately lighter fill the moment the sky
+   underneath goes dark, no glow required.
+
+   --sky-fade is set directly by app.js's paintVillage() (skyFadeFor_), NOT
+   computed here from --dusk-glow. Two threshold values were tried here
+   first (.72, then .90) and both eventually failed the same way: dusk_glow
+   is a proxy for "how far into the story", not the sky's actual rendered
+   color, and the sky's real top color does not get monotonically darker
+   in lockstep with it -- confirmed live, a background of rgb(135,129,160)
+   (partway through the dusk->night stretch) measured WORSE contrast
+   against the blended heading (1.89:1) than either plain ink (2.68:1) or
+   plain paper (3.61:1) alone. app.js has the sky's real color every frame
+   already (`tod.t`); it measures that color's actual WCAG luminance and
+   picks whichever of ink/paper truly contrasts better against it, so this
+   can't drift out of sync with the sky the way a hand-tuned CSS threshold
+   did twice. 0% is only the pre-JS fallback (matches the safe daytime
+   default) -- see skyFadeFor_'s own docstring in app.js for the real logic. */
 #frame{
-  --sky-fade: clamp(0%, calc((var(--dusk-glow,0) - .90) * 1000%), 100%);
+  --sky-fade: 0%;
   --onsky-ink: color-mix(in srgb, var(--ink), var(--paper) var(--sky-fade));
   --onsky-coral: color-mix(in srgb, var(--coral-text), var(--paper) var(--sky-fade));
 }

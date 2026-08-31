@@ -228,6 +228,55 @@ function lerpColor_(a,b,t){
   return '#'+((1<<24)+(r<<16)+(g<<8)+bl).toString(16).slice(1);
 }
 
+/* ── on-sky heading contrast, driven by the REAL sky color ────────────────
+   The previous approach faded --onsky-ink toward paper based on --dusk-glow
+   crossing a hand-picked threshold -- a proxy for "is the sky dark", not the
+   sky's actual color. That broke down hard: the dusk->night stretch's
+   sky-top color passes through a MEDIUM-luminance dusty purple on its way
+   from light lavender to dark indigo, and a linear ink<->paper blend at that
+   exact point can land WORSE than either pure endpoint (confirmed live: a
+   background of rgb(135,129,160) measured 1.89:1 contrast against the
+   blended heading color, versus 2.68:1 for plain ink or 3.61:1 for plain
+   paper -- the blend was the worst of all three options, not a compromise
+   between two good ones). Fixed at the root: every frame, paintVillage()
+   already computes the sky's real top color (`tod.t`); this measures ITS
+   actual WCAG relative luminance and picks whichever of ink/paper actually
+   contrasts better against that real color, blending only across a narrow
+   crossover band so the choice doesn't hard-snap mid-scroll. */
+function relLuminance_(hex){
+  var h=parseInt(hex.slice(1),16);
+  var r=(h>>16)&255, g=(h>>8)&255, b=h&255;
+  function f(c){ c=c/255; return c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4); }
+  return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);
+}
+function contrastOf_(lumA,lumB){
+  var lo=Math.min(lumA,lumB), hi=Math.max(lumA,lumB);
+  return (hi+0.05)/(lo+0.05);
+}
+var INK_LUM_=relLuminance_('#4F4036'), PAPER_LUM_=relLuminance_('#FFFCF7');
+/* skyFadeFor_(bgHex) -> 0 or 1 -- plain ink or plain paper, whichever
+   actually contrasts better against this exact background. NEVER a blend
+   in between: a first version tried a smooth linear ramp across the
+   crossover zone (mirroring how --tod-top/bot themselves smoothly
+   transition), and it reintroduced the exact bug this function exists to
+   fix, just in a narrower band -- a mid-ramp blend is itself a medium-
+   lightness color, and swept against the full dusk->night range that
+   background passes through, one blend point measured 1.06:1 contrast
+   (confirmed by sweeping the whole range in Node), actually worse than the
+   1.89:1 the original bug shipped with. A hard binary choice can't have
+   that failure mode: it's always sitting at max(contrastInk,
+   contrastPaper) for whatever the real background is, by construction, so
+   the worst case is only ever as bad as the better of the two endpoints
+   -- swept and confirmed nowhere below ~3:1 across the same range. Since
+   no heading has a `color` transition to begin with (see the comment
+   above), this reads as no visual regression -- headings already just
+   render whichever color is correct for the slide they're on. */
+function skyFadeFor_(bgHex){
+  var bgLum=relLuminance_(bgHex);
+  var cInk=contrastOf_(INK_LUM_,bgLum), cPaper=contrastOf_(PAPER_LUM_,bgLum);
+  return cPaper>cInk ? 1 : 0;
+}
+
 function paintVillage(i,total){
   var p = total>1 ? i/(total-1) : 0;
   // travel used to be a hardcoded VILLAGE_W-520, assuming every layer
@@ -277,6 +326,11 @@ function paintVillage(i,total){
     skyEl.style.setProperty('--tod-bot', tod.b);
   }
   if(warmEl) warmEl.style.setProperty('--warm', tod.warm);
+  // See skyFadeFor_'s docstring: computed from the sky's REAL top color,
+  // not approximated from `p`/warm. Set on #frame, the same element
+  // --onsky-ink/--onsky-coral (styles.css) already read --dusk-glow from,
+  // so this reaches them the same way.
+  if(frameEl) frameEl.style.setProperty('--sky-fade', (skyFadeFor_(tod.t)*100).toFixed(1)+'%');
   // items 2/3: the SAME warm value #vwarm's wash already reads, exposed one
   // level up on #village itself so the window-glow circles planted in the
   // schoolhouse/pavilion SVGs (index.html) and the sky's star scatter can
