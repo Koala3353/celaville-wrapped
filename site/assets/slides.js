@@ -173,6 +173,11 @@ var S=[];
 var P=null;
 function add(dur,html,cls){S.push({dur:dur,html:html,cls:cls||''});}
 
+/* Department deputy-application link -- one constant, two call sites (the
+   department slide and the recap slide), so a future URL change is a
+   one-line edit instead of a find-and-replace across the file. */
+var DEPT_APPS_URL='https://ateneoceladon.com/internal/dept-apps/';
+
 /* An act break. Only ever emitted by addBreak(), which no-ops when the act it
    introduces turned out to be empty — announcing "here's what you showed up
    for" and then cutting straight to the persona would be worse than having no
@@ -367,10 +372,12 @@ addBreak(!!(P.dept || P.project),
   // so nobody walks away thinking a form answer already made this official.
   var deputyNote='<p class="sm">Keep a lookout for deputy applications coming soon — that’s your chance to make it official.</p>'+
     // Department-only signup, deliberately not reused on the project slide
-    // below -- deputy-appform is specifically for departments, and project
+    // below -- DEPT_APPS_URL is specifically for departments, and project
     // applications (Core Team) are a separate process with no live link
-    // handed over yet.
-    '<a class="btn ghost" style="margin-top:10px;display:inline-block" href="https://ateneoceladon.com/deputy-appform" target="_blank" rel="noopener">Apply as Deputy →</a>';
+    // handed over yet. Also echoed on the recap slide at the very end (see
+    // "17 — recap" below), so a reader who skimmed past this slide still
+    // gets one more chance to see the link.
+    '<a class="btn ghost" style="margin-top:10px;display:inline-block" href="'+DEPT_APPS_URL+'" target="_blank" rel="noopener">Apply as Deputy →</a>';
   add(8500,'<p class="kicker">Where you belong <span class="cn">· 部门</span></p>'+
     '<h2>'+esc(d.name)+'</h2>'+
     '<p>'+esc(d.blurb)+'</p>'+
@@ -739,6 +746,11 @@ if(P.mahjong && (P.mahjong.ownedList.length>1 || P.mahjong.daysSince>0)){
       }).join('')+
     '</div>'+
     '<a class="btn" href="'+esc(P.cta.url)+'" target="_blank" rel="noopener">'+esc(P.cta.label)+' →</a>'+
+    // Echoes the department slide's own Apply as Deputy button -- a reader
+    // who's this far in already saw it once, but the recap is also the
+    // slide people are most likely to actually act from, so it gets one
+    // more chance here rather than assuming the earlier one was enough.
+    '<a class="btn ghost" style="margin-top:10px;display:inline-block" href="'+DEPT_APPS_URL+'" target="_blank" rel="noopener">Apply as Deputy →</a>'+
     '<button class="btn ghost" style="margin-top:10px" onclick="openShare()">Save your card</button>'+
     '<button class="btn ghost" style="margin-top:10px" onclick="replay()">Watch it again</button>');
 })();
