@@ -280,9 +280,36 @@ function drawShareSky_(x,W,H){
   x.save();
   roundRectPath(x,46,46,W-92,H-92,[132,30,120,30]);
   x.clip();
+  // Night sky -- the exact TOD stop the real page's own last slide (the
+  // recap, i=total-1, p=1) sits at: #4B4771 top fading to #E9DBCF bottom.
+  // Was the fixed morning blue (#BFE0F3->#FFFCF7) every previous version of
+  // this card used, regardless of persona or story progress -- direct
+  // feedback that the recap's actual dusk/night village looks much better
+  // than that flat morning sky, so this card now matches the one slide a
+  // reader just finished on instead of a color picked independently of it.
   var sky=x.createLinearGradient(0,0,0,skyBottom);
-  sky.addColorStop(0,'#BFE0F3'); sky.addColorStop(1,'#FFFCF7');
+  sky.addColorStop(0,'#4B4771'); sky.addColorStop(1,'#E9DBCF');
   x.fillStyle=sky; x.fillRect(0,0,W,skyBottom);
+
+  // The real #vwarm layer's own gradient, confined to the lower half of the
+  // sky here the same way it's confined to the bottom of the frame there --
+  // night on this page doesn't mean cold, it means the dusk warmth carried
+  // all the way through (warm=1 at the night TOD stop, not 0).
+  var warmTop=skyBottom*0.48;
+  var warm=x.createLinearGradient(0,warmTop,0,skyBottom);
+  warm.addColorStop(0,'rgba(243,191,141,0)');
+  warm.addColorStop(.46,'rgba(243,191,141,.34)');
+  warm.addColorStop(1,'rgba(217,79,64,.20)');
+  x.fillStyle=warm; x.fillRect(0,warmTop,W,skyBottom-warmTop);
+
+  // A sparse star scatter -- the same idea as the live page's .star dots,
+  // fully visible by the time the sky is this dark.
+  x.fillStyle='#FFFCF7';
+  [[0.12,90,1.6],[0.28,150,1.1],[0.42,70,1.3],[0.55,190,1.5],[0.70,110,1.1],
+   [0.85,60,1.4],[0.93,220,1.2],[0.20,260,1.0],[0.65,300,1.3]].forEach(function(s){
+    x.beginPath(); x.arc(W*s[0],s[1],s[2],0,Math.PI*2); x.fill();
+  });
+
   drawCloudAsset_(x,W*0.06,118,1.35);
   drawCloudAsset_(x,W*0.60,166,1.05);
   drawKiteAsset_(x,W*0.85,466,1.5);
@@ -492,23 +519,28 @@ function drawPostmark_(x,W,H){
   x.restore();
 }
 
-/* P.persona.color is one of the raw BRAND fill hexes (coral/leaf/sky/
-   yellow -- the only four any persona actually uses), not its accessible
-   -Text sibling. Fine for a small tag glyph or a card wash, not fine as the
-   card's largest headline text: BRAND's own comment measures sky at 1.62:1
-   and yellow at 1.85:1 against paper, both hard WCAG fails, which is why
-   BRAND ships an accessible -Text variant of each in the first place. This
-   maps the raw hex to that sibling so the persona name can be colored
-   in-brand without the exact contrast problem sky-legible headings
-   elsewhere already had to fix once. */
-var PERSONA_TEXT_COLOR_ = {
-  '#D94F40': '#C9493B', // coral -> coralText
-  '#5E8F6B': '#527D5E', // leaf -> leafText
-  '#9FD0EB': '#5C7888', // sky -> skyText
-  '#E4B64A': '#8D702D', // yellow -> yellowText
+/* personaTextColor_ (the light-background, -Text-sibling version of this
+   map) is gone -- the card's sky is unconditionally dark now (see
+   drawShareSky_), so nothing on this card ever needs a light-background
+   text color again. personaTextColor_'s -Text siblings are darkened for
+   contrast against
+   light paper -- exactly backwards now that the card's sky is dark
+   (#4B4771). Raw persona colors aren't the fix either: measured against
+   that same night sky, coral/leaf raw only reach 2.11/2.30:1, still well
+   under the 3:1 large-bold-text floor. Each is blended 40% toward paper
+   instead (same "toward paper, not toward ink" direction --onsky-ink uses
+   on the live page, just fixed at one ratio since this card always sits on
+   this one background rather than a range of them) -- verified all four
+   land between 3.7:1 and 6.4:1 against #4B4771, comfortably clearing 3:1
+   while each persona still keeps its own distinguishable hue. */
+var PERSONA_NIGHT_COLOR_ = {
+  '#D94F40': '#E89489', // coral, blended 40% toward paper
+  '#5E8F6B': '#9EBBA3', // leaf
+  '#9FD0EB': '#C5E2F0', // sky
+  '#E4B64A': '#EFD28F', // yellow
 };
-function personaTextColor_(hex){
-  return PERSONA_TEXT_COLOR_[String(hex||'').toUpperCase()] || hex || '#4F4036';
+function personaNightColor_(hex){
+  return PERSONA_NIGHT_COLOR_[String(hex||'').toUpperCase()] || '#FFFCF7';
 }
 
 /* #RRGGBB -> rgba(...) string, so a brand hex token can be dropped in at a
@@ -605,15 +637,23 @@ function drawShareCard(){
   var cx=W/2;
   x.textAlign='center';
 
-  x.fillStyle='#C9493B';
+  // All three of these used to be the -Text brand variants (coralText/ink/
+  // muted) -- deliberately darkened for contrast against light paper, which
+  // is exactly wrong now that the sky behind them is dark: measured against
+  // the real night-sky color (#4B4771), coralText/ink/muted all land around
+  // 1.2-1.9:1 contrast, nowhere near readable. yellow (raw, not yellowText)
+  // measures 4.55:1 there and matches the warm-accent-on-dark language the
+  // live page already uses for lantern glow and window light; plain paper
+  // is the obvious choice for the hero line at 8.41:1.
+  x.fillStyle='#E4B64A';
   x.font='700 30px Montserrat, sans-serif';
   x.fillText('ATENEO CELADON  \u00b7  RECWEEK 2026-2027', cx, 224);
 
-  x.fillStyle='#4F4036';
+  x.fillStyle='#FFFCF7';
   x.font='400 132px Bevan, Georgia, serif';
   x.fillText('Celaville', cx, 366);
 
-  x.fillStyle='#6B5D51';
+  x.fillStyle='rgba(255,252,247,.72)';
   x.font='600 38px Montserrat, sans-serif';
   x.fillText((P.name||'')+'’s Wrapped', cx, 436);
 
@@ -629,7 +669,7 @@ function drawShareCard(){
   // just a line from cx-70 to cx+70).
   var y=684;
   if(P.persona){
-    var pColor=personaTextColor_(P.persona.color);
+    var pColor=personaNightColor_(P.persona.color);
 
     x.font='800 76px Grandstander, sans-serif';
     var pl=wrapText(x,P.persona.name,W-260);
