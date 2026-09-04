@@ -66,47 +66,15 @@ function svgPath_(x,d,fill,stroke,sw,scaleX,scaleY){
   if(stroke){ x.strokeStyle=stroke; x.lineWidth=sw/((scaleX+scaleY)/2); x.stroke(p); }
 }
 
-/* The schoolhouse, apple tree, and picket fence -- the exact shapes from
-   gemini-svg-prompts.md, the same ones already inlined in #village. <path>
-   elements are drawn via svgPath_ from their real `d` data; the handful of
-   <rect>/<line>/<circle> elements each SVG also has are reproduced with the
-   same coordinates via plain canvas calls, since those primitives have no
-   `d` to lose fidelity from. ox/oy/scale place one asset's own (0,0)
-   viewBox origin at a position on the card. */
-function drawHouse_(x,ox,oy,scale){
-  x.save(); x.translate(ox,oy); x.scale(scale,scale);
-  x.lineJoin='round'; x.lineCap='round';
-  var ink='#4F4036';
-  function rrect(rx,ry,rw,rh,rr,fill){
-    x.beginPath();
-    if(rr){ x.moveTo(rx+rr,ry); x.lineTo(rx+rw-rr,ry); x.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rr);
-      x.lineTo(rx+rw,ry+rh-rr); x.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rr,ry+rh);
-      x.lineTo(rx+rr,ry+rh); x.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rr);
-      x.lineTo(rx,ry+rr); x.quadraticCurveTo(rx,ry,rx+rr,ry); x.closePath();
-    } else { x.rect(rx,ry,rw,rh); }
-    x.fillStyle=fill; x.fill(); x.strokeStyle=ink; x.lineWidth=2/scale; x.stroke();
-  }
-  function seg(x1,y1,x2,y2,sw){ x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2);
-    x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke(); }
-  function dot(cx,cy,r,fill,sw){ x.beginPath(); x.arc(cx,cy,r,0,Math.PI*2);
-    x.fillStyle=fill; x.fill(); x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke(); }
-
-  rrect(19,31,38,33,1.5,'#FFFCF7');
-  seg(16,64,60,64,2);
-  svgPath_(x,'M 33,64 L 33,51 A 5,5 0 0 1 43,51 L 43,64 Z','#8A6A4E',ink,2,scale,scale);
-  dot(41,56,1,'#E4B64A',1.5);
-  rrect(23,42,7,9,1.5,'#9FD0EB');
-  seg(23,46.5,30,46.5,1.5); seg(26.5,42,26.5,51,1.5); seg(21.5,52.5,31.5,52.5,2);
-  dot(51,46,4,'#E4B64A',2);
-  seg(47,46,55,46,1.5); seg(51,42,51,50,1.5);
-  svgPath_(x,'M 38,6 Q 23,18 8,30 C 12,33 17,33 21,33 L 55,33 C 59,33 64,33 68,30 Q 53,18 38,6 Z','#D94F40',ink,2,scale,scale);
-  svgPath_(x,'M 38,9 L 38,32',null,ink,1.5,scale,scale);
-  svgPath_(x,'M 34,14 Q 28,22 23,32',null,ink,1.5,scale,scale);
-  svgPath_(x,'M 42,14 Q 48,22 53,32',null,ink,1.5,scale,scale);
-  svgPath_(x,'M 34,7 Q 38,4 42,7','none',ink,2,scale,scale);
-  dot(38,5,2,'#E4B64A',2);
-  x.restore();
-}
+/* The apple tree -- the exact shape from gemini-svg-prompts.md, the same
+   one already inlined multiple times in #village (it's reused unmodified
+   at several x-positions there, including the one nearest the end of the
+   walk that this card's mid band now matches). <path> elements are drawn
+   via svgPath_ from their real `d` data; the handful of <rect>/<line>/
+   <circle> elements each SVG also has are reproduced with the same
+   coordinates via plain canvas calls, since those primitives have no `d`
+   to lose fidelity from. ox/oy/scale place the asset's own (0,0) viewBox
+   origin at a position on the card. */
 function drawTree_(x,ox,oy,scale){
   x.save(); x.translate(ox,oy); x.scale(scale,scale);
   x.lineJoin='round'; x.lineCap='round';
@@ -125,23 +93,11 @@ function drawTree_(x,ox,oy,scale){
   });
   x.restore();
 }
-function drawPicket_(x,ox,oy,scale){
-  x.save(); x.translate(ox,oy); x.scale(scale,scale);
-  x.beginPath();
-  x.moveTo(4,2.5); x.lineTo(7,6.5); x.lineTo(7,29.4); x.lineTo(1,29.4); x.lineTo(1,6.5); x.closePath();
-  x.fillStyle='#FFFCF7'; x.fill();
-  x.strokeStyle='#4F4036'; x.lineJoin='round'; x.lineWidth=1.2/scale; x.stroke();
-  [11,23].forEach(function(cy){
-    x.beginPath(); x.arc(4,cy,0.5,0,Math.PI*2); x.fillStyle='#4F4036'; x.fill();
-  });
-  x.restore();
-}
-
-/* Cloud cluster, kite, small background house (3 roof-color variants), the
-   open-sided mahjong pavilion, and a lantern-on-post -- all copied from the
-   exact Gemini asset markup already inlined in #village (index.html), the
-   same "real path data via Path2D, not a canvas reinterpretation" rule
-   drawHouse_/drawTree_/drawPicket_ above already follow. */
+/* Cloud cluster, kite, small background house (roof color set per call),
+   the open-sided mahjong pavilion, and a lantern-on-post -- all copied from
+   the exact Gemini asset markup already inlined in #village (index.html),
+   the same "real path data via Path2D, not a canvas reinterpretation" rule
+   drawTree_ above already follows. */
 function drawCloudAsset_(x,ox,oy,scale){
   x.save(); x.translate(ox,oy); x.scale(scale,scale);
   x.fillStyle='#FFFCF7';
@@ -230,37 +186,8 @@ function drawPavilionAsset_(x,ox,oy,scale){
   x.beginPath(); x.arc(45,3.5,2,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill(); x.strokeStyle=ink; x.lineWidth=1.8/scale; x.stroke();
   x.restore();
 }
-function drawLanternPostAsset_(x,ox,oy,scale){
-  x.save(); x.translate(ox,oy); x.scale(scale,scale);
-  x.lineJoin='round'; x.lineCap='round';
-  var ink='#4F4036';
-  function seg(x1,y1,x2,y2,sw){ x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2);
-    x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke(); }
-  function rrect(rx,ry,rw,rh,rr,fill,sw){
-    x.beginPath(); x.moveTo(rx+rr,ry); x.lineTo(rx+rw-rr,ry); x.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rr);
-    x.lineTo(rx+rw,ry+rh-rr); x.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rr,ry+rh);
-    x.lineTo(rx+rr,ry+rh); x.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rr);
-    x.lineTo(rx,ry+rr); x.quadraticCurveTo(rx,ry,rx+rr,ry); x.closePath();
-    x.fillStyle=fill; x.fill(); x.strokeStyle=ink; x.lineWidth=sw/scale; x.stroke();
-  }
-  seg(1.5,30,7.5,30,1.3);
-  rrect(3,4,2,26,0.4,'#8A6A4E',1.2);
-  svgPath_(x,'M 4,4 L 13,3.5','none',ink,1.3,scale,scale);
-  seg(4,8,8,4,1.1); seg(13,3.5,13,7.5,1);
-  x.beginPath(); x.ellipse(13,14,5.5,5.5,0,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill(); x.strokeStyle=ink; x.lineWidth=1.3/scale; x.stroke();
-  svgPath_(x,'M 7.8,12.5 Q 13,13.5 18.2,12.5 L 18.2,15.5 Q 13,16.5 7.8,15.5 Z','#D94F40',ink,1.1,scale,scale);
-  svgPath_(x,'M 13,8.5 Q 9.8,14 13,19.5','none',ink,0.9,scale,scale);
-  svgPath_(x,'M 13,8.5 Q 16.2,14 13,19.5','none',ink,0.9,scale,scale);
-  seg(13,8.5,13,19.5,0.9);
-  rrect(10.5,7.5,5,1.5,0.4,'#D94F40',1);
-  rrect(10.5,19,5,1.5,0.4,'#D94F40',1);
-  x.beginPath(); x.arc(13,21.5,0.7,0,Math.PI*2); x.fillStyle='#E4B64A'; x.fill(); x.strokeStyle=ink; x.lineWidth=0.7/scale; x.stroke();
-  seg(13,21.5,13,26.5,1.3);
-  x.restore();
-}
-
 /* The village, redrawn small for the corner of the share card, using the
-   actual house/tree/fence assets above rather than reinvented shapes. Sky
+   actual house/tree/pavilion assets above rather than reinvented shapes. Sky
    down to a parchment fade, two hill bands, then those assets sitting on
    the near one. Confined to the card's bottom margin, below the footer text
    (moved up to clear it). Clipped to the same rounded outline the wobbly
@@ -410,27 +337,31 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
 
   // Midground, drawn BEFORE the near hill so it sits half behind the
   // foreground rise, same trick the tree already used.
-  //
-  // Placed on the RIGHT half on purpose: the near band's house/fence
-  // cluster below sits on the LEFT half (see houseOx), and the two used to
-  // share almost the same x (both ~W*0.34) -- close enough to read as one
-  // asset stacked behind the other rather than two separate points of
-  // interest in the scene. Opposite halves plus a second tree on the near
-  // band's right (below) turns the empty middle into a deliberate clearing
-  // -- a path through the village -- instead of an accidental gap with
-  // everything bunched to one side and nothing past it.
   if(hasMahjong){
     drawPavilionAsset_(x,W*0.68,midBase-55*1.6,1.6);
+    var sTree=1.5;
+    drawTree_(x,W*0.20,(midBase-8)-52*sTree,sTree);
   } else {
-    drawSmallHouseAsset_(x,W*0.62,midBase-45*1.35,1.35,'#E4B64A');
-    drawSmallHouseAsset_(x,W*0.74,midBase-45*1.15,1.15,'#5E8F6B');
+    // Checked directly against the real recap slide (the walk fully panned
+    // out, DOM rects measured against #frame, #slides/#bars/#hint hidden so
+    // nothing occludes the village) rather than assumed: what's actually
+    // sitting in view at that point is a SINGLE small house -- the yellow-
+    // roofed one from index.html's #vmid house row at x=2214, the one
+    // closest to the end of the walk -- and one apple tree beside it (the
+    // x=2397 tree, same asset drawTree_ already reproduces), both small and
+    // close together near the mid band. No fence and no lantern posts are
+    // in frame at that pan position; those sit further back up the path
+    // (confirmed empty via the same DOM check) and only the mahjong
+    // pavilion branch above earns a personalized flourish beyond this.
+    var sHouseMid=1.3;
+    drawSmallHouseAsset_(x,W*0.30,midBase-45*sHouseMid,sHouseMid,'#E4B64A');
+    var sTree=1.15;
+    drawTree_(x,W*0.56,(midBase-4)-52*sTree,sTree);
   }
-  var sTree=1.5;
-  drawTree_(x,W*0.20,(midBase-8)-52*sTree,sTree);
 
-  // near hill: the leaf-green foreground the house, fence and lantern posts
-  // stand on -- filled all the way to H, so there is no flat paper strip
-  // between anyone's feet and the card's actual bottom edge.
+  // near hill: the leaf-green foreground everyone's feet land on -- filled
+  // all the way to H, so there is no flat paper strip between the ground
+  // and the card's actual bottom edge.
   x.beginPath();
   var nearPts=hillRidgePath_(x,W,(nearTop+nearBase-90)/2,26,11,1.8,3.9,4.3);
   x.lineTo(W,H); x.lineTo(0,H); x.closePath();
@@ -438,55 +369,17 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   drawTuft_(x,nearPts[5][0],nearPts[5][1],26,20,'#527D5E');
   drawTuft_(x,nearPts[18][0],nearPts[18][1],24,18,'#527D5E');
 
-  // Ground-anchor every standing asset to the REAL ridge line (nearPts),
-  // not the flat `nearBase` the fill's own moveTo starting point uses.
-  // nearBase turned out to sit past the card's own rounded-corner clip
-  // (measured live: nearBase=1930 on a 1920-tall canvas whose clip bottom
-  // is H-46=1874 -- 56px of "ground" that was never actually visible) --
-  // fine for the fill itself (it always extends to H regardless, clipped
-  // or not) but wrong for anything anchored to it as if it were an
-  // on-screen line: the fence and the second tree below landed entirely
-  // past the clip and simply never rendered, confirmed by logging their
-  // real coordinates rather than guessing from the image alone. The
-  // wavy ridge itself (nearPts) sits comfortably inside the clip -- it's
-  // the actual visible line, so anchor to it instead.
-  function ridgeYAt_(pts,xPos){
-    for(var i=1;i<pts.length;i++){
-      if(xPos<=pts[i][0]){
-        var t=(xPos-pts[i-1][0])/(pts[i][0]-pts[i-1][0]);
-        return pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t;
-      }
-    }
-    return pts[pts.length-1][1];
-  }
-  var sHouse=2.3, sFence=1.5;
-  var houseOx=W*0.20;
-  var houseGroundY=ridgeYAt_(nearPts,houseOx+38*sHouse);
-  drawHouse_(x,houseOx,houseGroundY-64*sHouse,sHouse);
-  var fenceOx=houseOx+76*sHouse+16;
-  var fenceGroundY=ridgeYAt_(nearPts,fenceOx+7*sFence);
-  drawPicket_(x,fenceOx,fenceGroundY-29.4*sFence,sFence);
-  drawPicket_(x,fenceOx+13*sFence,fenceGroundY-29.4*sFence,sFence);
-  // The "lantern field" -- this is what the real recap slide (this card's
-  // own reference point, per drawShareSky_ above) actually shows at the
-  // bottom once you're all the way at the end of the walk: not a lone
-  // lantern post at each edge, but a whole row of them (index.html's own
-  // "lm-lanterns" landmark is SIX of this exact asset, ~44 units apart,
-  // planted right where "the walk ends here, at dusk") clustered next to
-  // the mahjong pavilion, not a stray post out at each corner. Checked
-  // directly against a live screenshot of the real recap slide rather than
-  // guessing a second time -- the previous 2-sparse-posts version was a
-  // fair reading of "lantern posts flanking the village" in isolation, but
-  // it wasn't what the page this card is supposed to match actually shows.
-  // Five here (not six) simply because five fits this card's narrower
-  // width without crowding; the count was never the point, the CLUSTER was.
-  var sLantern2=1.15;
-  var lanternXs=[0.58,0.665,0.75,0.835,0.90];
-  lanternXs.forEach(function(fx){
-    var lx=W*fx;
-    drawLanternPostAsset_(x,lx,ridgeYAt_(nearPts,lx+9*sLantern2)-30*sLantern2,sLantern2);
-  });
-
+  // Nothing stands in the near band. That's not an omission --
+  // it's what the real recap slide's own near-ground layer (#vnear) shows
+  // at the fully-panned end of the walk: no fence, no lantern posts in
+  // frame there (both sit further back up the path). An earlier pass here
+  // drew the schoolhouse (wrong asset entirely -- that's the landmark at
+  // the START of the walk, "act one starts at the gate") plus a picket
+  // fence and a five-post lantern cluster, on the strength of a screenshot
+  // that turned out not to be the actual fully-panned recap view. Verified
+  // this time via #frame-relative DOM rects with the slide/stat panel
+  // hidden so nothing occluded the village -- see the mid-band comment
+  // above for what IS actually in frame.
   x.restore(); // lifts the clip -- border strokes and text below draw unclipped
 }
 
@@ -559,7 +452,7 @@ function hexA_(hex,a){
 /* One small glyph per stat category (item 4 round 2), so the card reads as
    four distinct little scenes instead of a uniform label/value list. Each
    shape is drawn with the same ink-stroke-over-flat-fill language as
-   drawHouse_/drawTree_ above rather than an imported icon font -- there's no
+   drawTree_/drawSmallHouseAsset_ above rather than an imported icon font -- there's no
    font/SVG-sprite dependency this canvas render can reach for anyway. `key`
    picks the shape; unrecognized/future stat keys fall through to a plain
    diamond rather than drawing nothing. */
