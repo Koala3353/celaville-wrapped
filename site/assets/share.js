@@ -247,12 +247,9 @@ function drawShareSky_(x,W,H){
   // bottom deep enough (past where the hills start painting over it
   // anyway) that the fade has real room to happen in, instead of being cut
   // off mid-fade.
-  var warmTop=H*0.30, warmBot=H*0.86;
+  var warmTop=H*WARM_TOP_FRAC_, warmBot=H*WARM_BOT_FRAC_;
   var warm=x.createLinearGradient(0,warmTop,0,warmBot);
-  warm.addColorStop(0,'rgba(243,191,141,0)');
-  warm.addColorStop(.34,'rgba(243,191,141,.34)');
-  warm.addColorStop(.62,'rgba(217,79,64,.20)');
-  warm.addColorStop(1,'rgba(217,79,64,0)');
+  WARM_STOPS_.forEach(function(s){ warm.addColorStop(s[0],s[1]); });
   x.fillStyle=warm; x.fillRect(0,warmTop,W,warmBot-warmTop);
 
   // A sparse star scatter -- the same idea as the live page's .star dots,
@@ -462,35 +459,6 @@ function drawPostmark_(x,W,H){
   x.restore();
 }
 
-/* personaTextColor_ (a map from each raw persona hue to a version blended
-   40% toward paper) is gone. Its reasoning was sound against the sky's TOP
-   color (#4B4771, where the header sits) -- but the persona name itself
-   renders much lower, around y=650-820, where the sky gradient has already
-   eased most of the way toward its own light bottom stop AND the #vwarm
-   warm-wash overlay is near full strength there. Composited, the real
-   background at that height is a MID-luminance dusty mauve (~y=650:
-   #A598A1, lum .33 -- ~y=820: #C6B2A9, lum ~.45), not the dark top color
-   the previous fix was measured against at all. Checked every one of the
-   40%-blended colors against that actual composited range and all four
-   came back between 1.0:1 and 2.1:1 -- unreadable, confirmed on a real
-   send. This is the identical trap the on-sky heading fix on the live page
-   already ran into once (a single fixed color, correct at one point on a
-   gradient, silently wrong at another) -- caught here on a card that only
-   ever renders ONE fixed scene, so there was no excuse to still be
-   eyeballing contrast at a single reference point instead of the actual
-   render position.
-   No blended color candidate cleared 3:1 at this specific mid-luminance
-   background (checked coral/leaf/sky/yellow raw AND blended up to 55%
-   toward ink -- best case ~2.5:1). Plain ink is the one thing that
-   actually measures well here (3.59:1 worst-case across the real
-   y-range) -- so the persona name uses --ink directly, same as the rest
-   of the card's body text, and keeps its color identity only in the small
-   rule drawn beneath it (a decorative accent doesn't carry the same
-   legibility requirement text does). */
-function personaNightColor_(hex){
-  return '#4F4036';
-}
-
 /* #RRGGBB -> rgba(...) string, so a brand hex token can be dropped in at a
    given alpha for a card wash without keeping a second rgba-triplet copy of
    every color around just for this. */
@@ -511,6 +479,80 @@ function lerpColor_(a,b,t){
   return '#'+ch(ar+(br-ar)*t)+ch(ag+(bg-ag)*t)+ch(ab+(bb-ab)*t);
 }
 var SKY_TOP_='#4B4771', SKY_BOT_='#E9DBCF';
+// The warm-wash gradient's own stops, factored out so drawShareSky_ (which
+// paints them) and bgColorAt_ below (which has to know exactly what got
+// painted, to answer "what color is actually behind this text") can never
+// drift apart the way the sky/hill colors once did.
+var WARM_TOP_FRAC_=0.30, WARM_BOT_FRAC_=0.86;
+var WARM_STOPS_=[
+  [0,'rgba(243,191,141,0)'],
+  [.34,'rgba(243,191,141,.34)'],
+  [.62,'rgba(217,79,64,.20)'],
+  [1,'rgba(217,79,64,0)']
+];
+
+/* WCAG relative-luminance/contrast math -- the same pattern app.js's
+   relLuminance_/contrastOf_ already use for the live page's on-sky
+   headings, duplicated here for the same reason lerpColor_ is (this file
+   shares no module with app.js). Needed because this card's persona name
+   and stat-card labels were choosing ink vs. paper by eye/assumption
+   against a background that, since the gradient-continuity fix, is a
+   genuinely different color at every y than it used to be -- exactly the
+   class of bug already hit twice on the live site's on-sky text and once
+   on this card's own persona name: a color that was correct against ONE
+   reference point silently wrong against the actual composited pixel. */
+function relLuminance_(hex){
+  var h=String(hex).replace('#',''), r=parseInt(h.substring(0,2),16)/255,
+      g=parseInt(h.substring(2,4),16)/255, b=parseInt(h.substring(4,6),16)/255;
+  function ch(c){ return c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4); }
+  return 0.2126*ch(r)+0.7152*ch(g)+0.0722*ch(b);
+}
+function contrastOf_(l1,l2){
+  var hi=Math.max(l1,l2), lo=Math.min(l1,l2);
+  return (hi+0.05)/(lo+0.05);
+}
+/* The ACTUAL composited pixel color at a given y: the full-height sky
+   gradient, then the warm wash alpha-blended over it exactly as
+   drawShareSky_ paints both, in the same source-over math a canvas does.
+   Text and stat cards sit directly on this (or, for the stat cards, on a
+   near-transparent .08-alpha tint over it -- close enough to this that it
+   doesn't change which of ink/paper wins). */
+function bgColorAt_(y,H){
+  var t=Math.max(0,Math.min(1,y/H));
+  var base=lerpColor_(SKY_TOP_,SKY_BOT_,t).replace('#','');
+  var br=parseInt(base.substring(0,2),16), bgc=parseInt(base.substring(2,4),16), bb=parseInt(base.substring(4,6),16);
+  var warmTop=H*WARM_TOP_FRAC_, warmBot=H*WARM_BOT_FRAC_;
+  if(y<warmTop||y>warmBot) return [br,bgc,bb];
+  var wt=(y-warmTop)/(warmBot-warmTop);
+  for(var i=0;i<WARM_STOPS_.length-1;i++){
+    var s0=WARM_STOPS_[i], s1=WARM_STOPS_[i+1];
+    if(wt>=s0[0]&&wt<=s1[0]){
+      var f=s1[0]>s0[0] ? (wt-s0[0])/(s1[0]-s0[0]) : 0;
+      var c0=s0[1].match(/[\d.]+/g).map(Number), c1=s1[1].match(/[\d.]+/g).map(Number);
+      var wr=c0[0]+(c1[0]-c0[0])*f, wg=c0[1]+(c1[1]-c0[1])*f, wb=c0[2]+(c1[2]-c0[2])*f, wa=c0[3]+(c1[3]-c0[3])*f;
+      return [wr*wa+br*(1-wa), wg*wa+bgc*(1-wa), wb*wa+bb*(1-wa)];
+    }
+  }
+  return [br,bgc,bb];
+}
+function rgbHex_(rgb){
+  function ch(v){ v=Math.max(0,Math.min(255,Math.round(v))); var s=v.toString(16); return s.length<2?'0'+s:s; }
+  return '#'+ch(rgb[0])+ch(rgb[1])+ch(rgb[2]);
+}
+/* Hard binary choice, never a blend -- the same lesson learned twice on
+   the live site's on-sky headings (skyFadeFor_, app.js): a color blended
+   toward the "safe" end can still land on worse contrast than either pure
+   endpoint if the real background sits at a middling lightness, which is
+   exactly the range this card's dusk gradient spends most of its height
+   in. So: measure the real composited background at this exact y, and
+   return whichever of ink/paper actually wins there. */
+function inkOrPaper_(y,H){
+  var bg=bgColorAt_(y,H);
+  var bgLum=relLuminance_(rgbHex_(bg));
+  var cInk=contrastOf_(relLuminance_('#4F4036'),bgLum);
+  var cPaper=contrastOf_(relLuminance_('#FFFCF7'),bgLum);
+  return cPaper>cInk ? '#FFFCF7' : '#4F4036';
+}
 
 /* One small glyph per stat category (item 4 round 2), so the card reads as
    four distinct little scenes instead of a uniform label/value list. Each
@@ -630,17 +672,28 @@ function drawShareCard(){
   var y=684;
   if(P.persona){
     // Text and the decorative rule beneath it deliberately use different
-    // colors now: the name itself needs to actually be read (ink, the one
-    // color that measures well at this height -- see personaNightColor_'s
-    // docstring), but a 4px accent line has no legibility requirement, so
-    // it keeps the persona's own raw brand hue instead of also flattening
-    // to ink -- the one place this card still visibly says "this persona
-    // is coral/leaf/sky/yellow" now that the name text itself can't.
-    var pColor=personaNightColor_(P.persona.color);
-    var pAccent=P.persona.color||pColor;
-
+    // colors now: the name itself needs to actually be read, but a 4px
+    // accent line has no legibility requirement, so it keeps the persona's
+    // own raw brand hue instead of also flattening to a legibility-safe
+    // color -- the one place this card still visibly says "this persona is
+    // coral/leaf/sky/yellow" now that the name text itself can't always.
+    //
+    // The name's own color used to be a single hardcoded ink, on the
+    // strength of a contrast check run against the background this card
+    // had BEFORE the gradient-continuity fix -- silently wrong again once
+    // that fix changed what color actually sits behind y=684 (measured:
+    // ink only reaches ~2.7:1 there now, below even the 3:1 large-text
+    // floor). Computed fresh here instead, at the actual vertical MIDDLE
+    // of wherever this name really lands (one line or two -- wrapText's
+    // own output decides that before this choice is made), so a two-line
+    // name doesn't end up torn between two different colors for the sake
+    // of a pixel-perfect-but-inconsistent choice per line.
     x.font='800 76px Grandstander, sans-serif';
     var pl=wrapText(x,P.persona.name,W-260);
+    var pMidY=y+(pl.length-1)*88/2;
+    var pColor=inkOrPaper_(pMidY,H);
+    var pAccent=P.persona.color||pColor;
+
     x.fillStyle=pColor;
     for(var i=0;i<pl.length;i++){ x.fillText(pl[i],cx,y); y+=88; }
     y+=6;
@@ -686,12 +739,23 @@ function drawShareCard(){
     x.fillStyle=hexA_(tint,.24); x.fill();
     drawStatIcon_(x, r.key, ix, iy, 21, tint, '#4F4036');
 
-    x.fillStyle='#8A7A6C'; x.font='700 20px Montserrat, sans-serif';
-    x.fillText(r.label.toUpperCase(), bx+26, by+118);
+    // Label used to be a fixed muted gray-brown ('#8A7A6C') -- the site's
+    // own text-muted token, correct against the light paper it was
+    // designed for, but never re-checked against this card's dark dusk
+    // gradient. Measured: over every category's tint wash, that gray comes
+    // back at 1.5-1.7:1 against the actual composited background here --
+    // badly failing, and exactly what "the color contrast looks wrong" was
+    // about. ink/paper (inkOrPaper_) both clear 3.7:1+ at every row this
+    // grid can reach; label and value share the same call so they never
+    // land on two different colors within one card.
+    var labelY=by+118, valueY=by+157;
+    var statColor=inkOrPaper_(labelY,H);
+    x.fillStyle=statColor; x.font='700 20px Montserrat, sans-serif';
+    x.fillText(r.label.toUpperCase(), bx+26, labelY);
 
-    x.fillStyle='#4F4036'; x.font='800 32px Grandstander, sans-serif';
+    x.fillStyle=inkOrPaper_(valueY,H); x.font='800 32px Grandstander, sans-serif';
     var vl=wrapText(x,r.value,colW-52).slice(0,2);
-    var vy=by+157;
+    var vy=valueY;
     vl.forEach(function(l){ x.fillText(l,bx+26,vy); vy+=38; });
   });
   y += Math.ceil(rows.length/2)*(cardH+gap) + 6;
