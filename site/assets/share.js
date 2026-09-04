@@ -446,7 +446,7 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
     }
     return pts[pts.length-1][1];
   }
-  var sHouse=2.3, sFence=1.5, sLantern=1.5;
+  var sHouse=2.3, sFence=1.5;
   var houseOx=W*0.20;
   var houseGroundY=ridgeYAt_(nearPts,houseOx+38*sHouse);
   drawHouse_(x,houseOx,houseGroundY-64*sHouse,sHouse);
@@ -454,39 +454,25 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   var fenceGroundY=ridgeYAt_(nearPts,fenceOx+7*sFence);
   drawPicket_(x,fenceOx,fenceGroundY-29.4*sFence,sFence);
   drawPicket_(x,fenceOx+13*sFence,fenceGroundY-29.4*sFence,sFence);
-  // Second, smaller near-band tree balancing the right side, roughly under
-  // the mid-band pavilion/houses above -- without it, that whole side of
-  // the frame had nothing between the pavilion and the right lantern post,
-  // a large dead gap of plain hillside.
-  var sTree2=0.85, treeX2=W*0.80;
-  var tree2GroundY=ridgeYAt_(nearPts,treeX2+12*sTree2);
-  drawTree_(x,treeX2,tree2GroundY-52*sTree2,sTree2);
-
-  // Lantern posts flanking the village -- the Festivalgoer persona's own
-  // motif (the same silhouette as the header's #lantern and the recap's
-  // floating lanterns), so the scene reads as festival-lit at both edges
-  // instead of just populated in the middle.
-  //
-  // The left post's x used to be W*0.05 (54px): with the card's own rounded
-  // frame clip at x=46 and a bottom-left corner radius of only 30px, the
-  // clip boundary curves inward to x=76 over the last 30px of height --
-  // right where this asset's base sits -- so its left edge got sliced off
-  // (confirmed against a real render: a stray sliver visible at the card's
-  // bottom-left corner). 100px clears that curve with margin to spare. The
-  // right post keeps its old placement: that corner's radius is 120px, a
-  // much gentler curve reaching far further up, and a real render shows no
-  // equivalent clipping there.
-  //
-  // Y also switched from flat `nearBase` to the real ridge line
-  // (ridgeYAt_/nearPts) for the same reason the house/fence/second tree
-  // did above -- nearBase-30*sLantern landed at ~1885 on this render, past
-  // the clip's real bottom (1874), so both lantern posts were rendering
-  // entirely outside the visible card this whole time. Not a regression
-  // from anything touched today; just never actually checked for until the
-  // house/fence one was.
-  var lanternLX=100, lanternRX=W*0.90;
-  drawLanternPostAsset_(x,lanternLX,ridgeYAt_(nearPts,lanternLX+9*sLantern)-30*sLantern,sLantern);
-  drawLanternPostAsset_(x,lanternRX,ridgeYAt_(nearPts,lanternRX+9*sLantern)-30*sLantern,sLantern);
+  // The "lantern field" -- this is what the real recap slide (this card's
+  // own reference point, per drawShareSky_ above) actually shows at the
+  // bottom once you're all the way at the end of the walk: not a lone
+  // lantern post at each edge, but a whole row of them (index.html's own
+  // "lm-lanterns" landmark is SIX of this exact asset, ~44 units apart,
+  // planted right where "the walk ends here, at dusk") clustered next to
+  // the mahjong pavilion, not a stray post out at each corner. Checked
+  // directly against a live screenshot of the real recap slide rather than
+  // guessing a second time -- the previous 2-sparse-posts version was a
+  // fair reading of "lantern posts flanking the village" in isolation, but
+  // it wasn't what the page this card is supposed to match actually shows.
+  // Five here (not six) simply because five fits this card's narrower
+  // width without crowding; the count was never the point, the CLUSTER was.
+  var sLantern2=1.15;
+  var lanternXs=[0.58,0.665,0.75,0.835,0.90];
+  lanternXs.forEach(function(fx){
+    var lx=W*fx;
+    drawLanternPostAsset_(x,lx,ridgeYAt_(nearPts,lx+9*sLantern2)-30*sLantern2,sLantern2);
+  });
 
   x.restore(); // lifts the clip -- border strokes and text below draw unclipped
 }
@@ -519,28 +505,33 @@ function drawPostmark_(x,W,H){
   x.restore();
 }
 
-/* personaTextColor_ (the light-background, -Text-sibling version of this
-   map) is gone -- the card's sky is unconditionally dark now (see
-   drawShareSky_), so nothing on this card ever needs a light-background
-   text color again. personaTextColor_'s -Text siblings are darkened for
-   contrast against
-   light paper -- exactly backwards now that the card's sky is dark
-   (#4B4771). Raw persona colors aren't the fix either: measured against
-   that same night sky, coral/leaf raw only reach 2.11/2.30:1, still well
-   under the 3:1 large-bold-text floor. Each is blended 40% toward paper
-   instead (same "toward paper, not toward ink" direction --onsky-ink uses
-   on the live page, just fixed at one ratio since this card always sits on
-   this one background rather than a range of them) -- verified all four
-   land between 3.7:1 and 6.4:1 against #4B4771, comfortably clearing 3:1
-   while each persona still keeps its own distinguishable hue. */
-var PERSONA_NIGHT_COLOR_ = {
-  '#D94F40': '#E89489', // coral, blended 40% toward paper
-  '#5E8F6B': '#9EBBA3', // leaf
-  '#9FD0EB': '#C5E2F0', // sky
-  '#E4B64A': '#EFD28F', // yellow
-};
+/* personaTextColor_ (a map from each raw persona hue to a version blended
+   40% toward paper) is gone. Its reasoning was sound against the sky's TOP
+   color (#4B4771, where the header sits) -- but the persona name itself
+   renders much lower, around y=650-820, where the sky gradient has already
+   eased most of the way toward its own light bottom stop AND the #vwarm
+   warm-wash overlay is near full strength there. Composited, the real
+   background at that height is a MID-luminance dusty mauve (~y=650:
+   #A598A1, lum .33 -- ~y=820: #C6B2A9, lum ~.45), not the dark top color
+   the previous fix was measured against at all. Checked every one of the
+   40%-blended colors against that actual composited range and all four
+   came back between 1.0:1 and 2.1:1 -- unreadable, confirmed on a real
+   send. This is the identical trap the on-sky heading fix on the live page
+   already ran into once (a single fixed color, correct at one point on a
+   gradient, silently wrong at another) -- caught here on a card that only
+   ever renders ONE fixed scene, so there was no excuse to still be
+   eyeballing contrast at a single reference point instead of the actual
+   render position.
+   No blended color candidate cleared 3:1 at this specific mid-luminance
+   background (checked coral/leaf/sky/yellow raw AND blended up to 55%
+   toward ink -- best case ~2.5:1). Plain ink is the one thing that
+   actually measures well here (3.59:1 worst-case across the real
+   y-range) -- so the persona name uses --ink directly, same as the rest
+   of the card's body text, and keeps its color identity only in the small
+   rule drawn beneath it (a decorative accent doesn't carry the same
+   legibility requirement text does). */
 function personaNightColor_(hex){
-  return PERSONA_NIGHT_COLOR_[String(hex||'').toUpperCase()] || '#FFFCF7';
+  return '#4F4036';
 }
 
 /* #RRGGBB -> rgba(...) string, so a brand hex token can be dropped in at a
@@ -669,14 +660,22 @@ function drawShareCard(){
   // just a line from cx-70 to cx+70).
   var y=684;
   if(P.persona){
+    // Text and the decorative rule beneath it deliberately use different
+    // colors now: the name itself needs to actually be read (ink, the one
+    // color that measures well at this height -- see personaNightColor_'s
+    // docstring), but a 4px accent line has no legibility requirement, so
+    // it keeps the persona's own raw brand hue instead of also flattening
+    // to ink -- the one place this card still visibly says "this persona
+    // is coral/leaf/sky/yellow" now that the name text itself can't.
     var pColor=personaNightColor_(P.persona.color);
+    var pAccent=P.persona.color||pColor;
 
     x.font='800 76px Grandstander, sans-serif';
     var pl=wrapText(x,P.persona.name,W-260);
     x.fillStyle=pColor;
     for(var i=0;i<pl.length;i++){ x.fillText(pl[i],cx,y); y+=88; }
     y+=6;
-    x.strokeStyle=pColor; x.lineWidth=4; x.lineCap='round';
+    x.strokeStyle=pAccent; x.lineWidth=4; x.lineCap='round';
     x.beginPath(); x.moveTo(cx-70,y); x.lineTo(cx+70,y); x.stroke();
     y+=64;
   }
