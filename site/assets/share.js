@@ -203,7 +203,6 @@ function drawPavilionAsset_(x,ox,oy,scale){
    persona/stat-grid content, once the real height of that content is known
    -- see drawShareVillage_ and its call site in drawShareCard(). */
 function drawShareSky_(x,W,H){
-  var skyBottom=H*0.64;
   x.save();
   roundRectPath(x,46,46,W-92,H-92,[132,30,120,30]);
   x.clip();
@@ -214,33 +213,33 @@ function drawShareSky_(x,W,H){
   // feedback that the recap's actual dusk/night village looks much better
   // than that flat morning sky, so this card now matches the one slide a
   // reader just finished on instead of a color picked independently of it.
-  var sky=x.createLinearGradient(0,0,0,skyBottom);
-  sky.addColorStop(0,'#4B4771'); sky.addColorStop(1,'#E9DBCF');
-  x.fillStyle=sky; x.fillRect(0,0,W,skyBottom);
-  // On the real page #vsky covers the ENTIRE frame (position:absolute;
-  // inset:0) and its gradient holds its last color stop for whatever's
-  // left below it -- there's never a point where the background reverts to
-  // plain white before the ground takes over. This card's sky used to stop
-  // dead at skyBottom (64% down) with nothing filling the gap until
-  // drawShareVillage_'s hills start much further down (after the stat
-  // grid + footer, whose real height isn't known until they're laid out) --
-  // a visible flat white band sat between them on every real render,
-  // confirmed directly against a screenshot. Solid-filling the remainder
-  // with the gradient's own last color closes that gap exactly the way the
-  // live page's held-last-stop already does, regardless of how tall the
-  // content above the hills turns out to be.
-  x.fillStyle='#E9DBCF'; x.fillRect(0,skyBottom,W,H-skyBottom);
+  //
+  // One gradient across the FULL card height, not a gradient down to some
+  // fraction of H with the last stop then held flat below it. That two-part
+  // version (a gradient, then a second flat fillRect of its own end color)
+  // is where the "white gap" bug this replaced came from, and fixing that
+  // by extending the flat fill instead of the gradient itself left a new,
+  // subtler version of the same mistake: the flat fill is a single solid
+  // color with no further gradation, so wherever it started (part-way down
+  // the card, well before the stat grid finished) there was a visible hard
+  // seam -- confirmed directly on a render, cutting right across the
+  // second row of stat cards, whose translucent tint let the sky color
+  // behind them show through. One continuous gradient the whole way down
+  // has no such seam by construction, at any content height.
+  var sky=x.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,SKY_TOP_); sky.addColorStop(1,SKY_BOT_);
+  x.fillStyle=sky; x.fillRect(0,0,W,H);
 
   // The real #vwarm layer's own gradient, confined to the lower half of the
   // sky here the same way it's confined to the bottom of the frame there --
   // night on this page doesn't mean cold, it means the dusk warmth carried
   // all the way through (warm=1 at the night TOD stop, not 0).
-  var warmTop=skyBottom*0.48;
-  var warm=x.createLinearGradient(0,warmTop,0,skyBottom);
+  var warmTop=H*0.30, warmBot=H*0.66;
+  var warm=x.createLinearGradient(0,warmTop,0,warmBot);
   warm.addColorStop(0,'rgba(243,191,141,0)');
   warm.addColorStop(.46,'rgba(243,191,141,.34)');
   warm.addColorStop(1,'rgba(217,79,64,.20)');
-  x.fillStyle=warm; x.fillRect(0,warmTop,W,skyBottom-warmTop);
+  x.fillStyle=warm; x.fillRect(0,warmTop,W,warmBot-warmTop);
 
   // A sparse star scatter -- the same idea as the live page's .star dots,
   // fully visible by the time the sky is this dark.
@@ -319,21 +318,22 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   x.clip();
 
   // far hill: a soft, low sage ridge. Its top edge used to be a flat
-  // '#A8C59A' fill meeting the sky's own flat held-last-stop color
-  // ('#E9DBCF', drawShareSky_ above) at a hard seam -- a visible paper-cut
-  // edge where warm tan met sage green with nothing between them, flagged
-  // as "the bg doesn't blend properly." The real page doesn't have this
-  // problem because its ridge line is the sky's OWN gradient continuing
-  // (no separate flat fill underneath it); this card draws the hill as a
-  // separate shape, so it gets its own short gradient instead, fading from
-  // the sky's exact held color at the ridge's own top into the hill's sage
-  // green by its base -- same two colors already in use, no new ones,
-  // just a soft hand-off instead of a hard edge.
+  // '#A8C59A' fill meeting the sky gradient's flat held-last-stop color at
+  // a hard seam -- a visible paper-cut edge where warm tan met sage green
+  // with nothing between them, flagged as "the bg doesn't blend properly."
+  // The real page doesn't have this problem because its ridge line is the
+  // sky's OWN gradient continuing (no separate flat fill underneath it);
+  // this card draws the hill as a separate shape, so it gets its own short
+  // gradient instead, fading from the sky's ACTUAL color at the ridge's
+  // own y (sampled via lerpColor_ against the same SKY_TOP_/SKY_BOT_
+  // drawShareSky_ paints with, not a second hardcoded guess at what color
+  // happens to land there) into the hill's sage green by its base.
   x.beginPath();
   var farPts=hillRidgePath_(x,W,(farTop+farBase)/2,16,7,2.6,5.3,0.4);
   x.lineTo(W,H); x.lineTo(0,H); x.closePath();
   var farFill=x.createLinearGradient(0,farTop-10,0,farBase+10);
-  farFill.addColorStop(0,'#E9DBCF'); farFill.addColorStop(1,'#A8C59A');
+  farFill.addColorStop(0,lerpColor_(SKY_TOP_,SKY_BOT_,Math.min(1,farTop/H)));
+  farFill.addColorStop(1,'#A8C59A');
   x.fillStyle=farFill; x.fill();
   drawTuft_(x,farPts[7][0],farPts[7][1],20,16,'#93B587');
   drawTuft_(x,farPts[15][0],farPts[15][1],18,14,'#93B587');
@@ -380,8 +380,33 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   x.fillStyle='#5E8F6B'; x.fill();
   drawTuft_(x,nearPts[5][0],nearPts[5][1],26,20,'#527D5E');
   drawTuft_(x,nearPts[18][0],nearPts[18][1],24,18,'#527D5E');
+  drawTuft_(x,nearPts[11][0],nearPts[11][1],20,15,'#527D5E');
 
-  // Nothing stands in the near band. That's not an omission --
+  // Meadow flecks -- the small white flowers index.html's #vnear scatters
+  // along its ENTIRE length (not tied to any one landmark, unlike the fence
+  // and lantern posts removed above), so unlike those two, adding a handful
+  // here is still true to the real ground rather than inventing decoration.
+  // Purely textural: the near band otherwise reads as a flat, empty stretch
+  // of green between whatever stands in the mid band, which is what read
+  // as "still looks bad" after the structures themselves were corrected.
+  // Ground-anchored to the real wavy ridge (nearPts), not a flat y, for the
+  // same reason the standing assets elsewhere in this function are.
+  function ridgeYAt_(pts,xPos){
+    for(var i=1;i<pts.length;i++){
+      if(xPos<=pts[i][0]){
+        var t=(xPos-pts[i-1][0])/(pts[i][0]-pts[i-1][0]);
+        return pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t;
+      }
+    }
+    return pts[pts.length-1][1];
+  }
+  x.fillStyle='rgba(255,252,247,.75)';
+  [0.08,0.16,0.38,0.46,0.63,0.72,0.86,0.94].forEach(function(fx,fi){
+    var fpx=W*fx, fpy=ridgeYAt_(nearPts,fpx)+18+(fi%2)*14;
+    x.beginPath(); x.arc(fpx,fpy,fi%3===0?1.8:1.5,0,Math.PI*2); x.fill();
+  });
+
+  // Nothing else stands in the near band. That's not an omission --
   // it's what the real recap slide's own near-ground layer (#vnear) shows
   // at the fully-panned end of the walk: no fence, no lantern posts in
   // frame there (both sit further back up the path). An earlier pass here
@@ -460,6 +485,18 @@ function hexA_(hex,a){
   var r=parseInt(h.substring(0,2),16), g=parseInt(h.substring(2,4),16), b=parseInt(h.substring(4,6),16);
   return 'rgba('+r+','+g+','+b+','+a+')';
 }
+/* Same hex-lerp app.js's lerpColor_ already does for the live page's TOD
+   blend, duplicated here (this file has no shared module with app.js) so
+   drawShareVillage_ can sample the sky's ACTUAL color at any y instead of
+   a second hardcoded copy of one of its stops -- see SKY_TOP_/SKY_BOT_. */
+function lerpColor_(a,b,t){
+  var ah=String(a).replace('#',''), bh=String(b).replace('#','');
+  var ar=parseInt(ah.substring(0,2),16), ag=parseInt(ah.substring(2,4),16), ab=parseInt(ah.substring(4,6),16);
+  var br=parseInt(bh.substring(0,2),16), bg=parseInt(bh.substring(2,4),16), bb=parseInt(bh.substring(4,6),16);
+  function ch(v){ v=Math.max(0,Math.min(255,Math.round(v))); var s=v.toString(16); return s.length<2?'0'+s:s; }
+  return '#'+ch(ar+(br-ar)*t)+ch(ag+(bg-ag)*t)+ch(ab+(bb-ab)*t);
+}
+var SKY_TOP_='#4B4771', SKY_BOT_='#E9DBCF';
 
 /* One small glyph per stat category (item 4 round 2), so the card reads as
    four distinct little scenes instead of a uniform label/value list. Each
