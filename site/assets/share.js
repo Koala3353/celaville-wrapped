@@ -727,8 +727,19 @@ function drawShareCard(){
     // separate the tile from the sky behind it), a quiet fill, and the
     // category color concentrated into one small icon swatch instead of
     // smeared across a whole tab.
+    // The fill used to be JUST an 8%-alpha category tint directly over the
+    // sky -- at that alpha the sky's own busy dusk color dominates almost
+    // entirely, so the card barely reads as its own surface and whatever
+    // sits on it is fighting the same background the sky text is. A
+    // near-opaque paper base first (matching the footer pill's own .94
+    // precedent) makes the card an actual light surface regardless of
+    // where on the gradient it lands, THEN the same category tint on top
+    // of that -- so the "quiet fill, color lives in the icon swatch"
+    // intent below is still true, it just has a stable surface to be
+    // quiet ON, not the raw sky.
     roundRectPath(x,bx,by,colW,cardH,[24,24,24,24]);
-    x.fillStyle=hexA_(tint,.08); x.fill();
+    x.fillStyle='rgba(255,252,247,.92)'; x.fill();
+    x.fillStyle=hexA_(tint,.10); x.fill();
     x.strokeStyle='rgba(79,64,54,.16)'; x.lineWidth=1.5; x.stroke();
 
     // Icon swatch: a soft tint-colored disc, not a floating outlined glyph
