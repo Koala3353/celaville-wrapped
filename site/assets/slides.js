@@ -370,7 +370,10 @@ addBreak(!!(P.dept || P.project),
   // just read off the rest of their answers. Said plainly and
   // unconditionally (not folded into the openToDeputy-only line above it),
   // so nobody walks away thinking a form answer already made this official.
-  var deputyNote='<p class="sm">Keep a lookout for deputy applications coming soon — that’s your chance to make it official.</p>'+
+  // "Coming soon" went stale the moment applications actually opened --
+  // caught on a live send where they'd already been open with a real
+  // deadline. Stated as a fact with a date now, not a future promise.
+  var deputyNote='<p class="sm">Deputy applications are open now through September 12 — that’s your chance to make it official.</p>'+
     // Department-only signup, deliberately not reused on the project slide
     // below -- DEPT_APPS_URL is specifically for departments, and project
     // applications (Core Team) are a separate process with no live link
