@@ -234,11 +234,25 @@ function drawShareSky_(x,W,H){
   // sky here the same way it's confined to the bottom of the frame there --
   // night on this page doesn't mean cold, it means the dusk warmth carried
   // all the way through (warm=1 at the night TOD stop, not 0).
-  var warmTop=H*0.30, warmBot=H*0.66;
+  //
+  // Actually measured this time, not just eyeballed: sampled a column of
+  // pixels down the rendered card and diffed each one against its
+  // neighbour. The sky gradient itself came back clean, but this wash had
+  // a real, measurable seam of its own -- its OWN last color stop was
+  // still at .20 alpha, so wherever the fillRect below stopped (a fixed
+  // fraction of H, same mistake as the sky/hill seam two commits ago,
+  // just one layer up) the tint didn't taper to nothing, it just vanished:
+  // a solid-alpha edge, not a fade. Fixed by giving the gradient its OWN
+  // stop back down to 0 alpha before the rect ends, and moving the rect's
+  // bottom deep enough (past where the hills start painting over it
+  // anyway) that the fade has real room to happen in, instead of being cut
+  // off mid-fade.
+  var warmTop=H*0.30, warmBot=H*0.86;
   var warm=x.createLinearGradient(0,warmTop,0,warmBot);
   warm.addColorStop(0,'rgba(243,191,141,0)');
-  warm.addColorStop(.46,'rgba(243,191,141,.34)');
-  warm.addColorStop(1,'rgba(217,79,64,.20)');
+  warm.addColorStop(.34,'rgba(243,191,141,.34)');
+  warm.addColorStop(.62,'rgba(217,79,64,.20)');
+  warm.addColorStop(1,'rgba(217,79,64,0)');
   x.fillStyle=warm; x.fillRect(0,warmTop,W,warmBot-warmTop);
 
   // A sparse star scatter -- the same idea as the live page's .star dots,
