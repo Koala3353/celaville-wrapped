@@ -318,11 +318,23 @@ function drawShareVillage_(x,W,H,sceneryTop,hasMahjong){
   roundRectPath(x,46,46,W-92,H-92,[132,30,120,30]);
   x.clip();
 
-  // far hill: a soft, low sage ridge
+  // far hill: a soft, low sage ridge. Its top edge used to be a flat
+  // '#A8C59A' fill meeting the sky's own flat held-last-stop color
+  // ('#E9DBCF', drawShareSky_ above) at a hard seam -- a visible paper-cut
+  // edge where warm tan met sage green with nothing between them, flagged
+  // as "the bg doesn't blend properly." The real page doesn't have this
+  // problem because its ridge line is the sky's OWN gradient continuing
+  // (no separate flat fill underneath it); this card draws the hill as a
+  // separate shape, so it gets its own short gradient instead, fading from
+  // the sky's exact held color at the ridge's own top into the hill's sage
+  // green by its base -- same two colors already in use, no new ones,
+  // just a soft hand-off instead of a hard edge.
   x.beginPath();
   var farPts=hillRidgePath_(x,W,(farTop+farBase)/2,16,7,2.6,5.3,0.4);
   x.lineTo(W,H); x.lineTo(0,H); x.closePath();
-  x.fillStyle='#A8C59A'; x.fill();
+  var farFill=x.createLinearGradient(0,farTop-10,0,farBase+10);
+  farFill.addColorStop(0,'#E9DBCF'); farFill.addColorStop(1,'#A8C59A');
+  x.fillStyle=farFill; x.fill();
   drawTuft_(x,farPts[7][0],farPts[7][1],20,16,'#93B587');
   drawTuft_(x,farPts[15][0],farPts[15][1],18,14,'#93B587');
 

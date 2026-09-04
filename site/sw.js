@@ -18,7 +18,7 @@
 // name forces a real install/activate cycle; the stale-while-revalidate
 // fetch handler below is the second half of the fix, for the gap between
 // deploys where a bump was forgotten.
-var CACHE_NAME = 'celaville-wrapped-v2';
+var CACHE_NAME = 'celaville-wrapped-v3';
 var PRECACHE = [
   './',
   './index.html',
