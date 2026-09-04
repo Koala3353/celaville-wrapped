@@ -290,6 +290,19 @@ function drawShareSky_(x,W,H){
   var sky=x.createLinearGradient(0,0,0,skyBottom);
   sky.addColorStop(0,'#4B4771'); sky.addColorStop(1,'#E9DBCF');
   x.fillStyle=sky; x.fillRect(0,0,W,skyBottom);
+  // On the real page #vsky covers the ENTIRE frame (position:absolute;
+  // inset:0) and its gradient holds its last color stop for whatever's
+  // left below it -- there's never a point where the background reverts to
+  // plain white before the ground takes over. This card's sky used to stop
+  // dead at skyBottom (64% down) with nothing filling the gap until
+  // drawShareVillage_'s hills start much further down (after the stat
+  // grid + footer, whose real height isn't known until they're laid out) --
+  // a visible flat white band sat between them on every real render,
+  // confirmed directly against a screenshot. Solid-filling the remainder
+  // with the gradient's own last color closes that gap exactly the way the
+  // live page's held-last-stop already does, regardless of how tall the
+  // content above the hills turns out to be.
+  x.fillStyle='#E9DBCF'; x.fillRect(0,skyBottom,W,H-skyBottom);
 
   // The real #vwarm layer's own gradient, confined to the lower half of the
   // sky here the same way it's confined to the bottom of the frame there --
